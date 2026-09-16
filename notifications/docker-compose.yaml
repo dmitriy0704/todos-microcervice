@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: users-mongodb
+    container_name: notifications-mongodb
     ports:
       - "27017:27017"
     environment:
@@ -11,29 +11,29 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=rootadmin
       - MONGO_INITDB_ROOT_PASSWORD=supersecretpassword
       # Указываем имя создаваемой базы данных
-      - MONGO_INITDB_DATABASE=usersdb
+      - MONGO_INITDB_DATABASE=notificationsdb
     volumes:
       - mongo-data:/data/db
     networks:
-      - users-network
+      - notifications-network
 
   tasks-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: users-backend
+    container_name: notifications-backend
     ports:
-      - "8092:8092"
+      - "8093:8093"
     environment:
-      - SERVER_PORT=8092
+      - SERVER_PORT=8093
       # Передаем логин и пароль в строке подключения (URI)
       # Имя переменной должно совпадать с тем, что написано в application.properties
-      - MONGO_URI=mongodb://rootadmin:supersecretpassword@mongodb:27017/usersdb?authSource=admin
+      - MONGO_URI=mongodb://rootadmin:supersecretpassword@mongodb:27017/notificationsdb?authSource=admin
 
     depends_on:
       - mongodb
     networks:
-      - users-network
+      - notifications-network
 
 volumes:
   mongo-data:
