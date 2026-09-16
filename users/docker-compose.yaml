@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: tasks-mongodb
+    container_name: users-mongodb
     ports:
       - "27017:27017"
     environment:
@@ -11,7 +11,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=rootadmin
       - MONGO_INITDB_ROOT_PASSWORD=supersecretpassword
       # Указываем имя создаваемой базы данных
-      - MONGO_INITDB_DATABASE=tasksdb
+      - MONGO_INITDB_DATABASE=usersdb
     volumes:
       - mongo-data:/data/db
     networks:
@@ -21,19 +21,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tasks-backend
+    container_name: users-backend
     ports:
       - "8091:8091"
     environment:
-      - SERVER_PORT=8091
+      - SERVER_PORT=8092
       # Передаем логин и пароль в строке подключения (URI)
       # Имя переменной должно совпадать с тем, что написано в application.properties
-      - MONGO_URI=mongodb://rootadmin:supersecretpassword@mongodb:27017/tasksdb?authSource=admin
+      - MONGO_URI=mongodb://rootadmin:supersecretpassword@mongodb:27017/usersdb?authSource=admin
 
     depends_on:
       - mongodb
     networks:
-      - tasks-network
+      - users-network
 
 volumes:
   mongo-data:

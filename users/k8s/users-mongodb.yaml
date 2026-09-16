@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: mongo-pvc
+  name: users-mongo-pvc
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,16 +12,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongodb
+  name: users-mongodb-deployment # 👈 Уникальное имя
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: mongodb
+      app: users-mongodb # 👈 Своя метка
   template:
     metadata:
       labels:
-        app: mongodb
+        app: users-mongodb
     spec:
       containers:
         - name: mongodb
@@ -34,21 +34,21 @@ spec:
             - name: MONGO_INITDB_ROOT_PASSWORD
               value: supersecretpassword
             - name: MONGO_INITDB_DATABASE
-              value: tasks_db
+              value: usersdb
           volumeMounts:
             - name: mongo-storage
               mountPath: /data/db
       volumes:
         - name: mongo-storage
           persistentVolumeClaim:
-            claimName: mongo-pvc
+            claimName: users-mongo-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongodb # ⚠️ Важно: имя сервиса станет DNS-именем для Spring Boot
+  name: users-mongodb-service # 👈 DNS-имя для user-service приложения
 spec:
   ports:
     - port: 27017
   selector:
-    app: mongodb
+    app: users-mongodb

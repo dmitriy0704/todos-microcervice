@@ -1,39 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tasks-service
+  name: users-service
 spec:
   replicas: 1 # Количество запущенных экземпляров вашего приложения
   selector:
     matchLabels:
-      app: tasks-service
+      app: users-service
   template:
     metadata:
       labels:
-        app: tasks-service
+        app: users-service
     spec:
       containers:
-        - name: tasks-service # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
-          image: myorg/tasks-service:1.0
+        - name: users-service
+          # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
+          image: myorg/users-service:1.0
           imagePullPolicy: Never # Говорим K8s не искать образ в Docker Hub
           ports:
-            - containerPort: 8091
+            - containerPort: 8092
           env:
             - name: SERVER_PORT
-              value: "8091"
+              value: "8092"
             - name: MONGO_URI
-              value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
+              value: "mongodb://rootadmin:supersecretpassword@users-mongodb-service:27017/usersdb?authSource=admin"
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: tasks-service
+  name: users-service
 spec:
   selector:
-    app: tasks-service # Должен совпадать с deploy.template.metadata.labels
+    app: users-service # Должен совпадать с deploy.template.metadata.labels
   ports:
-    - port: 8091
-      targetPort: 8091
+    - port: 8092
+      targetPort: 8092
       # nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube, только для NodePort
       protocol: TCP
   type: ClusterIP # Если NodePort, то - Позволяет открыть порт приложения наружу для вашего ПК

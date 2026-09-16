@@ -137,3 +137,40 @@ minikube service tasks-app-service --url
 Она вернет вам адрес вида http://192.168.49.2:30091. Используйте его в Postman или браузере для отправки POST и GET запросов!
 Получилось ли у вас переключить окружение Docker и собрать образ внутри Minikube? Если возникнут ошибки на этапе запуска подов, дайте знать, я помогу их отладить.
 
+# Запуск приложений
+
+## Запуск minikube
+
+```shell
+# Старт minicube
+minikube start
+
+# Эта команда перенаправит Docker-клиент внутрь виртуальной машины Minikube:
+eval $(minikube docker-env)
+
+# Собираем Docker-образ приложения внутри Minikube:Теперь собираем образ прямо там (находясь в корне проекта):
+docker build -t tasks-app:latest .
+
+# Применяем манифесты Kubernetes: 
+kubectl apply -f k8s/mongodb.yaml
+kubectl apply -f k8s/tasks-app.yaml
+
+# Проверяем, что все Поды поднялись (статус Running):
+kubectl get pods # или svc
+
+# Подключение к подам, если в service.yaml spec.type - ClusterIP
+kubectl port-forward service/tasks-service 8091:8091
+
+# Можно подключиться к поду:
+kubectl exec -it имя_пода -- bash
+
+# Удалить некорректные конфииги для подов - удалтся поды
+kubectl delete deployment mongodb
+kubectl delete service mongodb
+
+# Примените два новых раздельных манифеста:
+kubectl apply -f k8s/tasks-mongodb.yaml
+kubectl apply -f k8s/users-mongodb.yaml
+
+
+```
