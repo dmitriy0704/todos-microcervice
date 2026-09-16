@@ -28,7 +28,7 @@ services:
       - SERVER_PORT=8091
       # Передаем логин и пароль в строке подключения (URI)
       # Имя переменной должно совпадать с тем, что написано в application.properties
-      - MONGO_URI=mongodb://muser:mpass@mongodb:27017/tasksdb?authSource=admin
+      - MONGO_URI=mongodb://rootadmin:supersecretpassword@mongodb:27017/tasksdb?authSource=admin
 
     depends_on:
       - mongodb
