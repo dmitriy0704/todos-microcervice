@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: tasks-virtual-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - app-gateway # 👈 НАМЕРТВО СВЯЗЫВАЕМ С НАШИМ GATEWAY
+  http:
+    - match:
+        - uri:
+            prefix: /tasks # Если в адресе написано /tasks...
+      route:
+        - destination:
+            host: tasks-service # ...то Istio шлет запрос на ваш K8s Service
+            port:
+              number: 8091 # Внутренний порт вашего Java-приложения
