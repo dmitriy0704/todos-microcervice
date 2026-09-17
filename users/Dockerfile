@@ -26,7 +26,7 @@ USER springuser
 COPY --from=builder /app/target/*.jar app.jar
 
 # Открываем стандартный порт Spring Boot
-EXPOSE 8091
+EXPOSE 8092
 
 # Оптимальные параметры запуска для контейнера
 ENTRYPOINT ["java", "-jar", "app.jar"]

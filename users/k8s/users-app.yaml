@@ -33,7 +33,7 @@ spec:
   selector:
     app: users-service # Должен совпадать с deploy.template.metadata.labels
   ports:
-    - port: 8092
+    - port: 80 # 👈 Сюда будет стучаться RestTemplate = порт внутри сети
       targetPort: 8092
       # nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube, только для NodePort
       protocol: TCP
