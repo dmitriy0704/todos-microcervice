@@ -10,7 +10,9 @@ spec:
   http:
     - match:
         - uri:
-            prefix: /tasks # Если в адресе написано /tasks...
+            prefix: /tasks # 1. Если во внешнем адресе написано /tasks...
+      rewrite:
+        uri: /api/v1/tasks # 2. МАГИЯ: Заменяем префикс перед отправкой в Java!
       route:
         - destination:
             host: tasks-service # ...то Istio шлет запрос на ваш K8s Service
