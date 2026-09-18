@@ -32,7 +32,8 @@ spec:
   selector:
     app: tasks-service # Должен совпадать с deploy.template.metadata.labels
   ports:
-    - port: 8091
+    - name: http
+      port: 8091
       targetPort: 8091
       # nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube, только для NodePort
       protocol: TCP

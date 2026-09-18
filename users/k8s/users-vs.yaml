@@ -2,6 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: users-vs-external
+  namespace: default
 spec:
   hosts:
     - "*"
@@ -23,6 +24,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: users-vs-internal
+  namespace: default
 spec:
   hosts:
     - users-service

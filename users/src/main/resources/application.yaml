@@ -5,3 +5,8 @@ spring:
     uri: ${MONGO_URI:mongodb://localhost:27017/usersdb}
 server:
   port: 8092
+logging:
+  level:
+    org:
+      springframework:
+        web=DEBUG:
