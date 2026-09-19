@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: tasks
+  mongodb:
+    uri: ${MONGO_URI:mongodb://localhost:27017/tasksdb}
+  kafka:
+    # Общие настройки подключения брокера
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      # Гарантия доставки сообщений (all гарантирует запись на все синхронные реплики)
+      acks: all
+
+      # Защита от дублирования сообщений со стороны продюсера
+      properties:
+        enable.idempotence: true
+
+        # Настройки для оптимизации пакетной отправки (опционально)
+        # В Apache Kafka 4.0+ значение linger.ms по умолчанию изменено с 0 на 5 мс для лучшей пропускной способности
+        linger.ms: 5
+        batch.size: 16384
+
+
+server:
+  port: 8091

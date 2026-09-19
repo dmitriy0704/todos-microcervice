@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: notifications
+  mongodb:
+    uri: ${MONGO_URI:mongodb://localhost:27017/notificationsdb}
+server:
+  port: 8093

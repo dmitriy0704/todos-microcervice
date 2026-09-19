@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: users
+  mongodb:
+    uri: ${MONGO_URI:mongodb://localhost:27017/usersdb}
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      # Уникальный идентификатор группы потребителей
+      group-id: my-cool-group
+
+      # Что делать, если нет сохраненного смещения (offset):
+      # earliest — читать топик с самого начала
+      auto-offset-reset: earliest
+
+      # Настройки десериализации (Ключ — строка, Значение — JSON)
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        # Доверенные пакеты для JSON-десериализатора (важно для безопасности).
+        # В значении "*" разрешает десериализацию любых классов. Можно указать конкретный пакет, например: "com.example.dto.*"
+        spring.json.trusted.packages: "*"
+        # Явно указываем консюмеру, в какой класс превращать входящий JSON
+        spring.json.value.default.type: "dev.folomkin.users.event.TaskEvent"
+server:
+  port: 8092
+logging:
+  level:
+    org:
+      springframework:
+        web=DEBUG:
