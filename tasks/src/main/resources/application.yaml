@@ -5,23 +5,33 @@ spring:
     uri: ${MONGO_URI:mongodb://localhost:27017/tasksdb}
   kafka:
     # Общие настройки подключения брокера
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVERS:kafka-service:9092} # Указываем адрес K8s-сервиса Кафки и её порт
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
-      # Гарантия доставки сообщений (all гарантирует запись на все синхронные реплики)
+      # КОНФИГИ ДЛЯ НАДЕЖНОСТИ:
+      # 1. Подтверждение записи (all или -1)
+      # Брокер ответит Java-приложению только тогда, когда ВСЕ реплики запишут сообщение на диск.
+      # Это гарантирует нулевую потерю данных (Zero Data Loss).
       acks: all
 
-      # Защита от дублирования сообщений со стороны продюсера
+      # 2. Повторные попытки при сетевых сбоях
+      # Если сеть моргнет, Spring будет автоматически пытаться отправить сообщение снова
+      retries: 5
+
+      # 3. Защита от дубликатов (Идемпотентность)
+      # Если сообщение долетело до Кафки, но ответ сети потерялся, продюсер отправит его снова.
+      # Этот флаг гарантирует, что Кафка отфильтрует дубликат и сохранит сообщение строго ОДИН раз.
       properties:
         enable.idempotence: true
+
+        max.in.flight.requests.per.connection: 5 # Оптимальное число для идемпотентности
 
         # Настройки для оптимизации пакетной отправки (опционально)
         # В Apache Kafka 4.0+ значение linger.ms по умолчанию изменено с 0 на 5 мс для лучшей пропускной способности
         linger.ms: 5
         batch.size: 16384
-
 
 server:
   port: 8091

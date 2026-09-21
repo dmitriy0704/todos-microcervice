@@ -4,7 +4,7 @@ package dev.folomkin.tasks.controller;
 import dev.folomkin.tasks.entity.Tasks;
 import dev.folomkin.tasks.entity.User;
 import dev.folomkin.tasks.event.TaskEvent;
-import dev.folomkin.tasks.service.KafkaProducerService;
+import dev.folomkin.tasks.service.TaskEventProducer;
 import dev.folomkin.tasks.service.TaskService;
 import dev.folomkin.tasks.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -19,12 +19,12 @@ public class TasksController {
 
     private final TaskService taskService;
     private final UserService userService;
-    private final KafkaProducerService producerService;
+    private final TaskEventProducer producerService;
 
     public TasksController(
             TaskService taskService,
             UserService userService,
-            KafkaProducerService producerService
+            TaskEventProducer producerService
     ) {
         this.taskService = taskService;
         this.userService = userService;
@@ -54,17 +54,15 @@ public class TasksController {
     public ResponseEntity<User> getUserById(@PathVariable String id) {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
-
-    //-> Отправка сообщения в кафку
-    @PostMapping("/sendmessage")
-    public ResponseEntity<String> createOrder(@RequestBody TaskEvent taskEvent) {
-        // В качестве ключа Kafka-сообщения используем orderId (для сохранения порядка в партиции)
-        String kafkaKey = taskEvent.getId();
-
-        // Отправляем в топик "orders-topic"
-        producerService.sendMessage ("tasks-topic", kafkaKey, taskEvent);
-
-        return ResponseEntity.ok("Запрос на создание задачи принят и отправлен в Kafka!");
-    }
+//
+//    //-> Отправка сообщения в кафку
+//    @PostMapping("/sendmessage")
+//    public ResponseEntity<String> createOrder(@RequestBody TaskEvent taskEvent) {
+//        // В качестве ключа Kafka-сообщения используем orderId (для сохранения порядка в партиции)
+//
+//        producerService.sendMessage(taskEvent);
+//
+//        return ResponseEntity.ok("Запрос на создание задачи принят и отправлен в Kafka!");
+//    }
 
 }

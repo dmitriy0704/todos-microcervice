@@ -17,7 +17,6 @@ public class UserController {
         this.service = service;
     }
 
-
     @GetMapping
     public List<User> getAllTasks() {
         return service.getAllTasks();

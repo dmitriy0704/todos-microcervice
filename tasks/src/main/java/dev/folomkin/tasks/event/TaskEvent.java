@@ -1,27 +1,34 @@
 package dev.folomkin.tasks.event;
 
 public class TaskEvent {
-    private String id;
+    private String taskId;
     private String title;
-    private String description;
-    private boolean completed;
+    private String userId;
+    private String status;
+
 
     public TaskEvent() {
     }
 
-    public TaskEvent(String id, String title, String description, boolean completed) {
-        this.id = id;
+    public TaskEvent(
+            String taskId,
+            String title,
+            String userId,
+            String status
+    ) {
+        this.taskId = taskId;
         this.title = title;
-        this.description = description;
-        this.completed = completed;
+        this.userId = userId;
+        this.status = status;
     }
 
-    public String getId() {
-        return id;
+
+    public String getTaskId() {
+        return taskId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
     }
 
     public String getTitle() {
@@ -32,19 +39,19 @@ public class TaskEvent {
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

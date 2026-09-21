@@ -1,4 +1,4 @@
-package dev.folomkin.users.event;
+package dev.folomkin.notifications.event;
 
 public class TaskEvent {
     private String taskId;

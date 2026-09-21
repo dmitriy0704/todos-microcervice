@@ -2,11 +2,13 @@ package dev.folomkin.users.service;
 
 import dev.folomkin.users.entity.User;
 import dev.folomkin.users.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -25,6 +27,7 @@ public class UserService {
     }
 
     public User createTask(User task) {
+        log.info("СОЗДАНИЕ ПОЛЬЗОВАТЕЛЯ!");
         return repository.save(task);
     }
 }

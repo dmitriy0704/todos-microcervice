@@ -1,6 +1,7 @@
 package dev.folomkin.tasks.service;
 
 import dev.folomkin.tasks.entity.Tasks;
+import dev.folomkin.tasks.event.TaskEvent;
 import dev.folomkin.tasks.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +12,14 @@ import java.util.Optional;
 public class TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskEventProducer producer;
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(
+            TaskRepository taskRepository,
+            TaskEventProducer producer
+    ) {
         this.taskRepository = taskRepository;
+        this.producer = producer;
     }
 
     public List<Tasks> getAllTasks() {
@@ -25,7 +31,17 @@ public class TaskService {
     }
 
     public Tasks createTask(Tasks task) {
-        return taskRepository.save(task);
+//        return taskRepository.save(task);
+        Tasks t = taskRepository.save(task);
+        producer.sendTaskCreatedEvent(
+                new TaskEvent(
+                        task.getId(),
+                        task.getTitle(),
+                        "USER abc123",
+                        "CREATED")
+        );
+        return t;
+
     }
 
 }
