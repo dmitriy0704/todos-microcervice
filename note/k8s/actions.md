@@ -19,7 +19,7 @@
 ## Шаг 2. Манифест для MongoDB (k8s/mongodb.yaml)
 В Kubernetes база данных требует постоянного диска (PersistentVolumeClaim), чтобы данные не пропадали при перезапуске Пода.
 Создайте файл k8s/mongodb.yaml:
-
+```yaml
 apiVersion: v1kind: PersistentVolumeClaimmetadata:
   name: mongo-pvcspec:
   accessModes:
@@ -64,11 +64,15 @@ apiVersion: v1kind: PersistentVolumeClaimmetadata:
   selector:
     app: mongodb
 
+```
+
+
 ------------------------------
 ## Шаг 3. Манифест для Spring Boot приложения (k8s/tasks-app.yaml)
 Обратите внимание, что URL подключения к базе остается точно таким же, как в Docker Compose (mongodb://...), потому что K8s внутри себя свяжет имя сервиса mongodb с базой данных.
 Создайте файл k8s/tasks-app.yaml:
 
+```yaml
 apiVersion: apps/v1kind: Deploymentmetadata:
   name: tasks-appspec:
   replicas: 1 # Количество запущенных экземпляров вашего приложения
@@ -101,6 +105,10 @@ apiVersion: apps/v1kind: Deploymentmetadata:
       nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube
   selector:
     app: tasks-app
+
+
+```
+
 
 ------------------------------
 ## Шаг 4. Пошаговый запуск в Minikube

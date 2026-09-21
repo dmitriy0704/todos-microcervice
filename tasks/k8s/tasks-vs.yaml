@@ -11,8 +11,10 @@ spec:
     - match:
         - uri:
             prefix: /tasks # 1. Если во внешнем адресе написано /tasks...
+            # В итоге запрос из Postman будет по адресу http://localhost/tasks
       rewrite:
         uri: /api/v1/tasks # 2. МАГИЯ: Заменяем префикс перед отправкой в Java!
+        # (@RequestMapping("/api/v1/tasks"))
       route:
         - destination:
             host: tasks-service # ...то Istio шлет запрос на ваш K8s Service
