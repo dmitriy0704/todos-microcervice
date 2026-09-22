@@ -23,6 +23,7 @@ spec:
               value: "8091"
             - name: MONGO_URI
               value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
+
 ---
 apiVersion: v1
 kind: Service

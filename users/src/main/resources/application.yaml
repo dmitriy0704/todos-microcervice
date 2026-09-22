@@ -36,7 +36,7 @@ spring:
     # Включаем ручной режим подтверждения (Manual Immediate)
     # Теперь Кафка передвинет указатель только тогда, когда наш Java-код сам скажет: "Я всё обработал!"
     listener:
-      ack-mode: manual_immediate
+      ack-mode: manual_immediate # Соответствует ручному подтверждению в коде листенера
 
 server:
   port: 8092
