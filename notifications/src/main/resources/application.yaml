@@ -6,12 +6,21 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_SERVERS:kafka-service:9092}
     consumer:
-      # Уникальный идентификатор группы потребителей
-      group-id: notifications-group
 
+      # КОНФИГИ ДЛЯ НАДЕЖНОСТИ:
+      # Отключаем автоматическое подтверждение
+      enable-auto-commit: false
+
+      # Читаем топик с самого начала при первом запуске группы
       # Что делать, если нет сохраненного смещения (offset):
       # earliest — читать топик с самого начала
       auto-offset-reset: earliest
+      # ---
+
+
+      # Уникальный идентификатор группы потребителей
+      group-id: notifications-group
+
 
       # Настройки десериализации (Ключ — строка, Значение — JSON)
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -23,10 +32,13 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.use.type.headers: false
         # Явно указываем консюмеру, в какой класс превращать входящий JSON
-        spring.json.value.default.type: "dev.folomkin.users.event.TaskEvent"
-      #        "spring.json.trusted.packages": "*"
-      #        "spring.json.use.type.headers": "false"
-      #        "spring.json.value.default.type": "dev.folomkin.users.event.TaskEvent"
+        spring.json.value.default.type: "dev.folomkin.notifications.event.TaskEvent"
+
+    # ДЛЯ НАДЕЖНОСТИ:
+    # Включаем ручной режим подтверждения (Manual Immediate)
+    # Теперь Кафка передвинет указатель только тогда, когда наш Java-код сам скажет: "Я всё обработал!"
+    listener:
+      ack-mode: manual_immediate
 
 
 server:
