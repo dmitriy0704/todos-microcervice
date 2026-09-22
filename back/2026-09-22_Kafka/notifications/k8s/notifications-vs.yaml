@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: notifications-virtual-service
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - app-gateway # 👈 НАМЕРТВО СВЯЗЫВАЕМ С НАШИМ GATEWAY
+  http:
+    - match:
+        - uri:
+            prefix: /notifications # Если в адресе написано /tasks...
+      route:
+        - destination:
+            host: notifications-service # ...то Istio шлет запрос на ваш K8s Service
+            port:
+              number: 8093 # Внутренний порт вашего Java-приложения

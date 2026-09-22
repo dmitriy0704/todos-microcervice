@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notifications-service
+spec:
+  replicas: 1 # Количество запущенных экземпляров вашего приложения
+  selector:
+    matchLabels:
+      app: notifications-service
+  template:
+    metadata:
+      labels:
+        app: notifications-service
+    spec:
+      containers:
+        - name: notifications-service
+          # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
+          image: myorg/notifications-service:1.0
+          imagePullPolicy: Never # Говорим K8s не искать образ в Docker Hub
+          ports:
+            - containerPort: 8093
+          env:
+            - name: SERVER_PORT
+              value: "8093"
+            - name: MONGO_URI
+              value: "mongodb://rootadmin:supersecretpassword@notifications-mongodb-service:27017/notificationsdb?authSource=admin"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications-service
+spec:
+  selector:
+    app: notifications-service # Должен совпадать с deploy.template.metadata.labels
+  ports:
+    - name: http
+      port: 8093
+      targetPort: 8093
+      # nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube, только для NodePort
+      protocol: TCP
+  type: ClusterIP # Если NodePort, то - Позволяет открыть порт приложения наружу для вашего ПК
+
