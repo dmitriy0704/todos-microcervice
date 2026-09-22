@@ -15,7 +15,7 @@ public class TaskEventConsumer {
 
     @KafkaListener(
             topics = "tasks-topic",
-            groupId = "users-group"
+            groupId = "notifications-group"
     )
     public void consumeTaskEvent(TaskEvent event) {
         log.info("Получена новая задача: ID={}, Заголовок={}", event.getTaskId(), event.getTitle());

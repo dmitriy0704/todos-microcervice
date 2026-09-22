@@ -8,6 +8,7 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
+    // Конфиг был добавлен на подозрение, что не создается топик.
     @Bean
     public NewTopic tasksTopic() {
         return TopicBuilder.name("tasks-topic")
