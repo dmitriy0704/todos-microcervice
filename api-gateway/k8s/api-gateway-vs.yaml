@@ -1,0 +1,17 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: spring-cloud-gateway-vs # 👈 Одно общее имя для входной маршрутизации
+  namespace: default
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - app-gateway # 🔗 Подключаемся к вашему единственному неизменному gateway.yaml(metadata.name)
+  http:
+    - route:
+      - destination:
+          # 🚀 Перенаправляем весь этот поток на ваш новый Spring Cloud Gateway!
+          host: spring-cloud-gateway.default.svc.cluster.local
+          port:
+            number: 80 # Порт, который мы указали в манифесте spring-cloud-gateway-deployment.yaml

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-cloud-gateway
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-cloud-gateway
+  template:
+    metadata:
+      labels:
+        app: spring-cloud-gateway
+      annotations:
+        # Разрешаем Istio автоматически подсадить прокси Envoy внутрь этого Пода
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+        - name: spring-cloud-gateway
+          # Имя образа, под которым вы соберете приложение шлюза в Minikube
+          image: myorg/api-gateway:1.0
+          # Запрещаем K8s искать образ в интернете (Docker Hub)
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080 # Порт, на котором слушает ваш Gateway
+          env:
+            - name: SPRING_CLOUD_GATEWAY_HTTPCLIENT_PROTOCOLS
+              value: "HTTP11" # 👈 Задаем протокол прямо на уровне Kubernetes
+          startupProbe: # Под не перейдет в состояние Running, пока под не будет готов.
+                        # Тогда Kubernetes не будет пускать трафик на под,
+                        # пока readiness не UP, — и вы не увидите 503 в Postman.
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 30
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-cloud-gateway # 👈 Это имя мы указывали в VirtualService Istio
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 80       # Входной порт сервиса внутри кластера
+      targetPort: 8080 # Реальный порт, на котором слушает Spring Cloud Gateway
+      protocol: TCP
+  selector:
+    app: spring-cloud-gateway

@@ -4,7 +4,7 @@ metadata:
   name: tasks-virtual-service
 spec:
   hosts:
-    - "*" # Или адрес сайта из gateway: http://my-site.com
+    - "*" # Или localhost или адрес сайта из gateway: http://my-site.com
   gateways:
     - app-gateway # 👈 НАМЕРТВО СВЯЗЫВАЕМ С НАШИМ GATEWAY
   http:

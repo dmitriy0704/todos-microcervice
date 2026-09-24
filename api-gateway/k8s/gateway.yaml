@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway # внешний gateway
+metadata:
+  name: app-gateway # istio-gateway
+spec:
+  selector:
+    istio: ingressgateway # Говорим использовать встроенный шлюз Istio
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "*" # Принимаем любые входящие запросы или http://my-site.com,
+              # Или укажите конкретный хост, например, "tasks.example.com"

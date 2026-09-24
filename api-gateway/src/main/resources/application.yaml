@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: tasks-service-route
+              # Куда отправляем трафик (внутреннее DNS-имя K8s сервиса задач)
+              uri: lb://tasks-service  #http://tasks-service.default.svc.cluster.local
+              predicates:
+                # Ловим все входящие запросы, которые начинаются с /api/tasks
+                - Path=/tasks/**
+#              filters:
+#                 Отрезаем первый префикс (/api), чтобы в tasks-service улетал чистый путь /tasks
+#                - StripPrefix=1
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+    kubernetes:
+      discovery:
+        enabled: true
+        all-namespaces: false
+        # Показывать сервисы, даже если у них нет ready-подов (для отладки)
+        include-not-ready-addresses: true
+      # Если не используете ConfigMap — отключите, чтобы не было лишних ошибок
+      config:
+        enabled: false
+    loadbalancer:
+      cache:
+        enabled: true
+        ttl: 5s # 35s
+#      health-check:
+#        initial-delay: 0
+
+metadata:
+  annotations:
+    proxy.istio.io/config: | # Это аннотация Istio, которая заставляет приложение ждать старта sidecar:
+      holdApplicationUntilProxyStarts: true 
+
+#  позволит смотреть на http://<gateway>/actuator/gateway/routes — очень помогает при отладке маршрутов.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  health:
+    readinessstate:
+      enabled: true
+
+# Настройки логирования (полезно для отладки маршрутизации на этапе разработки)
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.http.server.reactive: DEBUG
+    org.springframework.web.reactive: DEBUG
+    
+server:
+  port: 8080

@@ -44,7 +44,6 @@ spec:
         - name: mongo-storage
           persistentVolumeClaim:
             claimName: tasks-mongo-pvc # 👈 Ссылка на правильный диск
-
 ---
 apiVersion: v1
 kind: Service

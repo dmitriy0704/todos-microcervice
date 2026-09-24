@@ -23,7 +23,6 @@ spec:
               value: "8091"
             - name: MONGO_URI
               value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
-
 ---
 apiVersion: v1
 kind: Service
@@ -34,7 +33,7 @@ spec:
     app: tasks-service # Должен совпадать с deploy.template.metadata.labels
   ports:
     - name: http
-      port: 8091
+      port: 80
       targetPort: 8091
       # nodePort: 30091 # Приложение будет доступно по этому порту на IP-адресе Minikube, только для NodePort
       protocol: TCP

@@ -1,0 +1,8 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default-permissive
+  namespace: default # Применяем строго к нашей рабочей папке
+spec:
+  mtls:
+    mode: PERMISSIVE # 👈 ФИКС: Разрешаем совмещать mTLS и обычный HTTP-трафик
