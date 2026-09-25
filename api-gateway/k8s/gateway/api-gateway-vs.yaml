@@ -10,8 +10,8 @@ spec:
     - app-gateway # 🔗 Подключаемся к вашему единственному неизменному gateway.yaml(metadata.name)
   http:
     - route:
-      - destination:
-          # 🚀 Перенаправляем весь этот поток на ваш новый Spring Cloud Gateway!
-          host: spring-cloud-gateway.default.svc.cluster.local
-          port:
-            number: 80 # Порт, который мы указали в манифесте spring-cloud-gateway-deployment.yaml
+        - destination:
+            # 🚀 Перенаправляем весь этот поток на ваш новый Spring Cloud Gateway!
+            host: spring-cloud-gateway # spring-cloud-gateway.default.svc.cluster.local
+            port:
+              number: 80 # Порт, который мы указали в манифесте spring-cloud-gateway-deployment.yaml

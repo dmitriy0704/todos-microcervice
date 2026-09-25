@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratelimit-config
+  namespace: default
+data:
+  config.yaml: |
+    domain: tasks-app
+    descriptors:
+      # Правило 1: не более 5 запросов в минуту с одного IP на создание задачи
+      - key: remote_address
+        value: "*"
+        rate_limit:
+          unit: minute
+          requests_per_unit: 5
+      # Правило 2: общий лимит 100 запросов в минуту на весь сервис
+      - key: generic_key
+        value: global
+        rate_limit:
+          unit: minute
+          requests_per_unit: 100
