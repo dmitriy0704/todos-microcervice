@@ -1,4 +1,4 @@
 spring: # настройки для tasks-service (все профили)
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb://tasks-mongodb-service.default.svc.cluster.local:27017/tasksdb}
+      uri: mongodb://tasks-mongodb-service.default.svc.cluster.local:27017/tasksdb
