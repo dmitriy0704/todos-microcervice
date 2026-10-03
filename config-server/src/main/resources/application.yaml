@@ -1,3 +1,13 @@
+server:
+  port: 8888
 spring:
   application:
     name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/dmitriy0704/todos-microcervice.git
+          search-paths: config-repo
+          default-label: feature/configurations
+          clone-on-start: true # Клонировать репозиторий при старте (а не при первом запросе)

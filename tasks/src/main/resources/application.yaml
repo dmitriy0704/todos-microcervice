@@ -1,8 +1,13 @@
 spring:
   application:
-    name: tasks
-  mongodb:
-    uri: ${MONGO_URI:mongodb://localhost:27017/tasksdb}
+    name: tasks-service
+  config:
+    import: configserver:http://config-server:8888  #<- в таком виде tasks-service ждет запуска config-server, а так было  optional:configserver:http://config-server:8888
+
+  # ${MONGO_URI:...} — «возьми переменную окружения MONGO_URI,
+  # а если её нет — используй значение после двоеточия».
+  #  mongodb: #- перенесено в config-repo/tasks-service.yaml
+  #    uri: ${MONGO_URI:mongodb://localhost:27017/tasksdb}
   kafka:
     # Общие настройки подключения брокера
     bootstrap-servers: ${KAFKA_SERVERS:kafka-service:9092} # Указываем адрес K8s-сервиса Кафки и её порт
@@ -35,3 +40,27 @@ spring:
 
 server:
   port: 8091
+
+# Для настройки актуатора:
+management:
+  endpoints: # Открыть эндпоинты (health, info, metrics, env и др.)
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops
+  endpoint:
+    env:
+      show-values: always
+    health:
+      show-details: always # Показывать подробную информацию о состоянии здоровья (всегда, а не только при ошибке)
+      probes:
+        enabled: true # Пробы Liveness и Readiness (в Spring Boot 4 включены по умолчанию, но можно управлять явно)
+  # Пример выделения Actuator на отдельный порт для б езопасности (опционально)
+  # management.server.port=9001
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    org.springframework.boot.context.config: DEBUG
+    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver: DEBUG
+    org.springframework.boot.autoconfigure.mongo: DEBUG

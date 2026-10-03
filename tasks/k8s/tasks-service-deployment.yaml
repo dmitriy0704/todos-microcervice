@@ -12,6 +12,17 @@ spec:
       labels:
         app: tasks-service
     spec:
+      initContainers: # Так под tasks-service запускается только после config-server
+        - name: wait-for-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              until wget -qO- http://config-server:8888/actuator/health; do
+                echo "waiting for config-server..."
+                sleep 2
+              done
       containers:
         - name: tasks-service # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
           image: myorg/tasks-service:1.0
@@ -22,7 +33,14 @@ spec:
             - name: SERVER_PORT
               value: "8091"
             - name: MONGO_URI
-              value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
+              valueFrom:
+                # создается секрет:  kubectl create secret generic mongodb-credentials \
+                #  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin'
+                secretKeyRef:
+                  name: mongodb-credentials
+                  key: MONGO_URI
+#              value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
+
 ---
 apiVersion: v1
 kind: Service
