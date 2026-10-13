@@ -12,3 +12,8 @@ spring: # настройки для tasks-service (все профили)
 #connectTimeoutMS	        2000	    Таймаут TCP-подключения
 #socketTimeoutMS	        5000	    Таймаут чтения/записи
 
+## Или лучше хранить настройки таймаута в Secret:
+
+## kubectl create secret generic mongodb-credentials \
+#  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000' \
+#  --dry-run=client -o yaml | kubectl apply -f -

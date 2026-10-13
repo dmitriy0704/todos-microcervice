@@ -3,7 +3,6 @@ package dev.folomkin.tasks.controller;
 
 import dev.folomkin.tasks.entity.Tasks;
 import dev.folomkin.tasks.entity.User;
-import dev.folomkin.tasks.event.TaskEvent;
 import dev.folomkin.tasks.service.TaskEventProducer;
 import dev.folomkin.tasks.service.TaskService;
 import dev.folomkin.tasks.service.UserService;

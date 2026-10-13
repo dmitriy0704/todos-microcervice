@@ -46,7 +46,7 @@ management:
   endpoints: # Открыть эндпоинты (health, info, metrics, env и др.)
     web:
       exposure:
-        include: health,info,metrics,env,configprops
+        include: health,info,metrics,env,configprops,circuitbreakers,circuitbreakerevents,retries,ratelimiters
   endpoint:
     env:
       show-values: always
@@ -54,13 +54,51 @@ management:
       show-details: always # Показывать подробную информацию о состоянии здоровья (всегда, а не только при ошибке)
       probes:
         enabled: true # Пробы Liveness и Readiness (в Spring Boot 4 включены по умолчанию, но можно управлять явно)
-  # Пример выделения Actuator на отдельный порт для б езопасности (опционально)
+  # Пример выделения Actuator на отдельный порт для безопасности (опционально)
   # management.server.port=9001
 
-logging:
-  level:
-    org.springframework.cloud.config: DEBUG
-    org.springframework.boot.context.config: DEBUG
-    org.springframework.data.mongodb: DEBUG
-    org.mongodb.driver: DEBUG
-    org.springframework.boot.autoconfigure.mongo: DEBUG
+#logging:
+#  level:
+#    org.springframework.cloud.config: DEBUG
+#    org.springframework.boot.context.config: DEBUG
+#    org.springframework.data.mongodb: DEBUG
+#    org.mongodb.driver: DEBUG
+#    org.springframework.boot.autoconfigure.mongo: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      mongoDb:
+        registerHealthIndicator: true
+        slidingWindowSize: 10 # Сколько последних вызовов учитывать. 100 для прода
+        minimumNumberOfCalls: 5 # Минимум вызовов до расчёта процента ошибок. 20 для прода
+        failureRateThreshold: 50 # Порог ошибок (%), после которого цепь размыкается. % ошибок для размыкания. для прода 30
+        waitDurationInOpenState: 10s # Сколько ждать перед попыткой закрыть цепь. сколько сидеть в OPEN. для прода 30.
+        permittedNumberOfCallsInHalfOpenState: 3 # Сколько тестовых вызовов разрешить в полуоткрытом состоянии: все 3 успешны - CLOSED, хоть один failed - OPEN (снова), для прода 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true # авто-переход
+        slowCallRateThreshold: 50           # если 50% вызовов медленные
+        slowCallDurationThreshold: 2s       # что считать "медленным"
+
+        # Считать ошибкой только некоторые исключения
+        recordExceptions:
+#          - java.lang.Exception
+          - com.mongodb.MongoException
+          - org.springframework.dao.DataAccessException
+          - java.net.ConnectException
+          - java.net.SocketTimeoutException
+
+  retry:
+    instances:
+      mongoDb:
+        maxAttempts: 2 # Сколько раз повторять при ошибке (3)
+        waitDuration: 100ms # Пауза между попытками (500)
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - com.mongodb.MongoSocketOpenException
+          - java.net.ConnectException
+  timelimiter:
+    instances:
+      mongoDb:
+        timeoutDuration: 3s
+        cancelRunningFuture: true

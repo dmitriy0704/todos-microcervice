@@ -1,0 +1,31 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: tasks-service-cb
+  namespace: default
+spec:
+  host: tasks-service  # ⚠️ Укажите реальное имя вашего сервиса
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    # --- Circuit Breaker: лимиты на соединения ---
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+    # --- Circuit Breaker: выбрасывание нездоровых подов ---
+    outlierDetection:
+      consecutive5xxErrors: 5      # 5 ошибок подряд → выбить под
+      interval: 10s                # Проверять каждые 10 секунд
+      baseEjectionTime: 30s        # Выбить минимум на 30 секунд
+      maxEjectionPercent: 50       # Выбивать не более 50% подов
+#  subsets: # Для канареечного развертывания
+#    - name: v1
+#      labels:
+#        version: v1
+#    - name: v2
+#      labels:
+#        version: v2

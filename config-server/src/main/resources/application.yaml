@@ -9,5 +9,5 @@ spring:
         git:
           uri: https://github.com/dmitriy0704/todos-microcervice.git
           search-paths: config-repo
-          default-label: feature/configurations
+          default-label: feature/resilience
           clone-on-start: true # Клонировать репозиторий при старте (а не при первом запросе)
