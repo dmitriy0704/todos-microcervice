@@ -1,3 +1,14 @@
 spring: # настройки для tasks-service (все профили)
   mongodb:
-    uri: ${MONGO_URI:mongodb://tasks-mongodb-service.default.svc.cluster.local:27017/tasksdb}
+    uri: ${MONGO_URI:mongodb://tasks-mongodb-service.default.svc.cluster.local:27017/tasksdb}?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000
+
+# ?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000:
+# при тестировании срабатывания автоматического выключателя CircuitBreaker
+# удалил под mongodb и по умолчанию запрос к нему идет в пустоту но долго.
+# а эта настройка уменьшает время запроса
+
+# Параметр              	Значение	Что делает
+#serverSelectionTimeoutMS	2000	    Сколько ждать, пока драйвер найдёт доступный сервер
+#connectTimeoutMS	        2000	    Таймаут TCP-подключения
+#socketTimeoutMS	        5000	    Таймаут чтения/записи
+
