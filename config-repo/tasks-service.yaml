@@ -4,7 +4,7 @@ spring: # настройки для tasks-service (все профили)
 
 # ?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000:
 # при тестировании срабатывания автоматического выключателя CircuitBreaker
-# удалил под mongodb и по умолчанию запрос к нему идет в пустоту но долго.
+# удалил под mongodb и по умолчанию запрос к нему идет в пустоту, но долго.
 # а эта настройка уменьшает время запроса
 
 # Параметр              	Значение	Что делает
@@ -13,7 +13,10 @@ spring: # настройки для tasks-service (все профили)
 #socketTimeoutMS	        5000	    Таймаут чтения/записи
 
 ## Или лучше хранить настройки таймаута в Secret:
+# -> в процессе тестирования параметры из config-repo игнорировались, а
+## сработали те, что из Secret:
 
 ## kubectl create secret generic mongodb-credentials \
 #  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000' \
 #  --dry-run=client -o yaml | kubectl apply -f -
+# kubectl rollout restart deploy/tasks-service

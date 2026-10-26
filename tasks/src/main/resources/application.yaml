@@ -1,6 +1,9 @@
 spring:
   application:
     name: tasks-service
+  threads: # Включает виртуальные потоки
+    virtual:
+      enabled: true
   config:
     import: configserver:http://config-server:8888  #<- в таком виде tasks-service ждет запуска config-server, а так было  optional:configserver:http://config-server:8888
 
@@ -46,7 +49,7 @@ management:
   endpoints: # Открыть эндпоинты (health, info, metrics, env и др.)
     web:
       exposure:
-        include: health,info,metrics,env,configprops,circuitbreakers,circuitbreakerevents,retries,ratelimiters
+        include: health,info,metrics,env,configprops,circuitbreakers,circuitbreakerevents,retries,ratelimiters,bulkheads
   endpoint:
     env:
       show-values: always
@@ -66,39 +69,63 @@ management:
 #    org.springframework.boot.autoconfigure.mongo: DEBUG
 
 resilience4j:
-  circuitbreaker:
+  # Автоматический выключатель
+  circuitbreaker: #-> Соответствует @CircuitBreaker(name = "mongoDb", fallbackMethod = "fallbackCreateTask")
     instances:
       mongoDb:
         registerHealthIndicator: true
         slidingWindowSize: 10 # Сколько последних вызовов учитывать. 100 для прода
         minimumNumberOfCalls: 5 # Минимум вызовов до расчёта процента ошибок. 20 для прода
-        failureRateThreshold: 50 # Порог ошибок (%), после которого цепь размыкается. % ошибок для размыкания. для прода 30
-        waitDurationInOpenState: 10s # Сколько ждать перед попыткой закрыть цепь. сколько сидеть в OPEN. для прода 30.
+        failureRateThreshold: 50 # Порог ошибок (%), после которого цепь размыкается. % ошибок для размыкания. Для прода - 30
+        waitDurationInOpenState: 10s # Сколько ждать перед попыткой закрыть цепь. Сколько сидеть в OPEN. Для прода - 30.
         permittedNumberOfCallsInHalfOpenState: 3 # Сколько тестовых вызовов разрешить в полуоткрытом состоянии: все 3 успешны - CLOSED, хоть один failed - OPEN (снова), для прода 5
         automaticTransitionFromOpenToHalfOpenEnabled: true # авто-переход
         slowCallRateThreshold: 50           # если 50% вызовов медленные
         slowCallDurationThreshold: 2s       # что считать "медленным"
 
+        # ⚠️ ВАЖНО: BulkheadFullException — не ошибка MongoDB,
+        # поэтому НЕ должен размыкать circuit breaker
+        ignoreExceptions:
+          - io.github.resilience4j.bulkhead.BulkheadFullException
+
         # Считать ошибкой только некоторые исключения
         recordExceptions:
-#          - java.lang.Exception
+          #          - java.lang.Exception -> можно оставить для отладки, но не для прода
           - com.mongodb.MongoException
           - org.springframework.dao.DataAccessException
           - java.net.ConnectException
           - java.net.SocketTimeoutException
 
-  retry:
+  retry: #-> Соответствует @Retry(name = "mongoDb") //-> перехватывает вызов и повторяет его до 3 раз при ошибке
     instances:
       mongoDb:
-        maxAttempts: 2 # Сколько раз повторять при ошибке (3)
-        waitDuration: 100ms # Пауза между попытками (500)
+        maxAttempts: 2 # Сколько раз повторять при ошибке (3 для прода)
+        waitDuration: 100ms # Пауза между попытками (500 для прода)
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
           - com.mongodb.MongoSocketOpenException
           - java.net.ConnectException
-  timelimiter:
+  timelimiter: #-> Соответствует @TimeLimiter(name = "mongoDb") //-> прерывает вызов, если он длится дольше 3 секунд. Для асинхронных методов
     instances:
       mongoDb:
         timeoutDuration: 3s
         cancelRunningFuture: true
+
+  # Перегородка
+  bulkhead: #-> Соответствует @Bulkhead(name = "mongoDb", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "fallbackCreateTask")
+    instances:
+      mongoDb:
+        maxConcurrentCalls: 10 #-> Количество одновременных вызовов метода
+        maxWaitDuration: 100ms #-> Дополнительные запросы будут ожидать до 100ms или будут отклонены
+
+# Ограничитель скорости RateLimiter, настроен в Istio Gateway
+#  ratelimiter:
+#    instances:
+#      mongoDb:
+#        limitForPeriod: 5 # - запросов
+#        limitRefreshPeriod: 1s # - в секунду, если лимит превышен, запросы
+#        timeoutDuration: 500ms # будут ждать 500ms или отклонены
+
+
+

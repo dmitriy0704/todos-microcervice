@@ -34,8 +34,10 @@ spec:
               value: "8091"
             - name: MONGO_URI
               valueFrom:
-                # создается секрет:  kubectl create secret generic mongodb-credentials \
+                # создается секрет:
+                # kubectl create secret generic mongodb-credentials \
                 #  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin'
+                # kubectl rollout restart deploy/tasks-service
                 secretKeyRef:
                   name: mongodb-credentials
                   key: MONGO_URI
