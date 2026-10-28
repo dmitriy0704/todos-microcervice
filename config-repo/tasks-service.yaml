@@ -1,3 +1,10 @@
 spring:
   datasource:
     url: jdbc:postgresql://tasks-postgres-service:5432/tasksdb
+  jpa:
+    hibernate:
+      ddl-auto: update   # ← должно быть update или create
+    show-sql: true       # полезно для отладки
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
