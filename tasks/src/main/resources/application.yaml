@@ -64,15 +64,12 @@ management:
 #  level:
 #    org.springframework.cloud.config: DEBUG
 #    org.springframework.boot.context.config: DEBUG
-#    org.springframework.data.mongodb: DEBUG
-#    org.mongodb.driver: DEBUG
-#    org.springframework.boot.autoconfigure.mongo: DEBUG
 
 resilience4j:
   # Автоматический выключатель
-  circuitbreaker: #-> Соответствует @CircuitBreaker(name = "mongoDb", fallbackMethod = "fallbackCreateTask")
+  circuitbreaker: #-> Соответствует @CircuitBreaker(name = "postgres", fallbackMethod = "fallbackCreateTask")
     instances:
-      mongoDb:
+      postgres:
         registerHealthIndicator: true
         slidingWindowSize: 10 # Сколько последних вызовов учитывать. 100 для прода
         minimumNumberOfCalls: 5 # Минимум вызовов до расчёта процента ошибок. 20 для прода
@@ -90,39 +87,43 @@ resilience4j:
 
         # Считать ошибкой только некоторые исключения
         recordExceptions:
-          #          - java.lang.Exception -> можно оставить для отладки, но не для прода
-          - com.mongodb.MongoException
-          - org.springframework.dao.DataAccessException
-          - java.net.ConnectException
-          - java.net.SocketTimeoutException
+          # - java.lang.Exception -> можно оставить для отладки, но не для прода
+          - org.springframework.dao.DataAccessResourceFailureException # Не удалось подключиться к БД
+          - org.springframework.dao.QueryTimeoutException # Запрос превысил таймаут
+          - org.springframework.dao.TransientDataAccessResourceException # Временная ошибка (retry имеет смысл)
+          - org.springframework.dao.CannotAcquireLockException # Не удалось взять блокировку
+          - org.springframework.jdbc.CannotGetJdbcConnectionException # Не удалось получить соединение из пула (HikariCP)
+          - java.sql.SQLException # Общая ошибка SQL (fallback)
+          - java.net.ConnectException # Сетевые ошибки
+          - java.net.SocketTimeoutException # Сетевые ошибки
 
-  retry: #-> Соответствует @Retry(name = "mongoDb") //-> перехватывает вызов и повторяет его до 3 раз при ошибке
+  retry: #-> Соответствует @Retry(name = "postgres") //-> перехватывает вызов и повторяет его до 3 раз при ошибке
     instances:
-      mongoDb:
+      postgres:
         maxAttempts: 2 # Сколько раз повторять при ошибке (3 для прода)
         waitDuration: 100ms # Пауза между попытками (500 для прода)
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
         retryExceptions:
-          - com.mongodb.MongoSocketOpenException
+          - org.springframework.dao.TransientDataAccessResourceException
           - java.net.ConnectException
-  timelimiter: #-> Соответствует @TimeLimiter(name = "mongoDb") //-> прерывает вызов, если он длится дольше 3 секунд. Для асинхронных методов
+  timelimiter: #-> Соответствует @TimeLimiter(name = "postgres") //-> прерывает вызов, если он длится дольше 3 секунд. Для асинхронных методов
     instances:
-      mongoDb:
+      postgres:
         timeoutDuration: 3s
         cancelRunningFuture: true
 
   # Перегородка
-  bulkhead: #-> Соответствует @Bulkhead(name = "mongoDb", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "fallbackCreateTask")
+  bulkhead: #-> Соответствует @Bulkhead(name = "postgres", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "fallbackCreateTask")
     instances:
-      mongoDb:
+      postgres:
         maxConcurrentCalls: 10 #-> Количество одновременных вызовов метода
         maxWaitDuration: 100ms #-> Дополнительные запросы будут ожидать до 100ms или будут отклонены
 
 # Ограничитель скорости RateLimiter, настроен в Istio Gateway
 #  ratelimiter:
 #    instances:
-#      mongoDb:
+#      postgres:
 #        limitForPeriod: 5 # - запросов
 #        limitRefreshPeriod: 1s # - в секунду, если лимит превышен, запросы
 #        timeoutDuration: 500ms # будут ждать 500ms или отклонены

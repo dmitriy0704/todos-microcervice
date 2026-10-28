@@ -32,17 +32,18 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8091"
-            - name: MONGO_URI
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
-                # создается секрет:
-                # kubectl create secret generic mongodb-credentials \
-                #  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin'
-                # kubectl rollout restart deploy/tasks-service
+                secretKeyRef: # данные берутся из секрета(tasks-secret.yaml)
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
                 secretKeyRef:
-                  name: mongodb-credentials
-                  key: MONGO_URI
-#              value: "mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin"
-
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+#            - name: SPRING_DATASOURCE_URL
+#              value: "jdbc:postgresql://postgres:5432/tasksdb"
 ---
 apiVersion: v1
 kind: Service

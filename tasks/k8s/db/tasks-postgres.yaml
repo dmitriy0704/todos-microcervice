@@ -60,7 +60,7 @@ metadata:
   name: tasks-postgres-service # ⚠️ Важно: имя сервиса станет DNS-именем для Spring Boot
 spec:
   selector:
-    app: tasks-postgres # 👈 Ищет именно поды базы задач
+    app: tasks-postgres # 👈 Ищет именно поды базы tasks
   ports:
     - port: 5432
       targetPort: 5432

@@ -1,7 +1,7 @@
 package dev.folomkin.tasks.event;
 
 public class TaskEvent {
-    private String taskId;
+    private Long taskId;
     private String title;
     private String userId;
     private String status;
@@ -11,7 +11,7 @@ public class TaskEvent {
     }
 
     public TaskEvent(
-            String taskId,
+            Long taskId,
             String title,
             String userId,
             String status
@@ -23,11 +23,11 @@ public class TaskEvent {
     }
 
 
-    public String getTaskId() {
+    public Long getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(String taskId) {
+    public void setTaskId(Long taskId) {
         this.taskId = taskId;
     }
 

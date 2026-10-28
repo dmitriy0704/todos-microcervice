@@ -1,16 +1,16 @@
 package dev.folomkin.tasks.entity;
 
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
 
-@Document(collection = "tasks")
+@Entity
+@Table(name = "tasks")
 public class Tasks {
 
+
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
     private String title;
     private String description;
     private boolean completed;
@@ -24,11 +24,12 @@ public class Tasks {
     public Tasks() {
     }
 
-    public String getId() {
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

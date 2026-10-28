@@ -36,7 +36,7 @@ public class TasksController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Tasks> getTaskById(@PathVariable String id) {
+    public ResponseEntity<Tasks> getTaskById(@PathVariable Long id) {
         return taskService.getTaskById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

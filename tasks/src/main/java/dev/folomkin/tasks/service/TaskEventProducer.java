@@ -23,7 +23,7 @@ public class TaskEventProducer {
 
 
     public void sendTaskCreatedEvent(TaskEvent taskEvent) {
-        kafkaTemplate.send(TOPIC, taskEvent.getTaskId(), taskEvent)
+        kafkaTemplate.send(TOPIC, taskEvent.getTaskId().toString(), taskEvent)
                 .whenComplete((result, ex) -> {
                     if (ex == null) {
                         log.info("Сообщение успешно доставлено в топик {} partition {} offset {}",

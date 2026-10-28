@@ -36,20 +36,20 @@ public class TaskService {
     }
 
 
-    public Optional<Tasks> getTaskById(String id) {
+    public Optional<Tasks> getTaskById(Long id) {
         return taskRepository.findById(id);
     }
 
 
     //-> считает ошибки; если их больше 50% за последние 10 вызовов — размыкает цепь,
     // если цепь разомкнута или все попытки провалились — вызывается fallbackCreateTas.
-    @Retry(name = "mongoDb")
+    @Retry(name = "postgres")
     //-> перехватывает вызов и повторяет его до 3 раз при ошибке
     //-> Реализация паттерна Автоматический выключатель
     // Fallback — вызывается, когда цепь разомкнута или все попытки исчерпаны
-    @CircuitBreaker(name = "mongoDb", fallbackMethod = "fallbackCreateTask")
+    @CircuitBreaker(name = "postgres", fallbackMethod = "fallbackCreateTask")
     //-> Bulkhead: ограничивает количество одновременных запросов
-    @Bulkhead(name = "mongoDb", fallbackMethod = "fallbackCreateTask")
+    @Bulkhead(name = "postgres", fallbackMethod = "fallbackCreateTask")
     //-> @TimeLimiter(name = "mongoDb") //-> прерывает вызов, если он длится дольше 3 секунд. Для асинхронных методов
     //-> @RateLimiter(name = "mongoDb") - ограничение количества запросов, уточнить от кого
     public Tasks createTask(Tasks task) {
@@ -85,13 +85,13 @@ public class TaskService {
 
         // CallNotPermittedException - если не сработает, создать свой, но это не точно
         if (t instanceof CallNotPermittedException) {
-            log.error("CircuitBreaker is OPEN: MongoDB unavailable, task={}", task.getId());
+            log.error("CircuitBreaker is OPEN: PostgreSQL unavailable, task={}", task.getId());
             throw new ServiceUnavailableException(
-                    "MongoDB временно недоступна, попробуйте позже"
+                    "База данных временно недоступна, попробуйте позже"
             );
         }
 
-        log.error("MongoDB call failed after retries, task={}, error={}",
+        log.error("PostgreSQL call failed after retries, task={}, error={}",
                 task.getId(), t.getMessage(), t);
         throw new ServiceUnavailableException(
                 "Не удалось создать задачу, попробуйте позже"
