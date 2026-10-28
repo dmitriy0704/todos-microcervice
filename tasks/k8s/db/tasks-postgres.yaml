@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tasks-postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks-postgres
+  template:
+    metadata:
+      labels:
+        app: tasks-postgres
+      annotations:
+        sidecar.istio.io/inject: "false" # 👈 Эта строка запретит Istio трогать базу
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_DB
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: tasks-postgres-pvc # 👈 Ссылка на правильный диск
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-postgres-service # ⚠️ Важно: имя сервиса станет DNS-именем для Spring Boot
+spec:
+  selector:
+    app: tasks-postgres # 👈 Ищет именно поды базы задач
+  ports:
+    - port: 5432
+      targetPort: 5432

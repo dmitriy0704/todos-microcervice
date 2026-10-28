@@ -1,22 +1,3 @@
-spring: # настройки для tasks-service (все профили)
-  mongodb:
-    uri: ${MONGO_URI:mongodb://tasks-mongodb-service.default.svc.cluster.local:27017/tasksdb}?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000
-
-# ?serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000:
-# при тестировании срабатывания автоматического выключателя CircuitBreaker
-# удалил под mongodb и по умолчанию запрос к нему идет в пустоту, но долго.
-# а эта настройка уменьшает время запроса
-
-# Параметр              	Значение	Что делает
-#serverSelectionTimeoutMS	2000	    Сколько ждать, пока драйвер найдёт доступный сервер
-#connectTimeoutMS	        2000	    Таймаут TCP-подключения
-#socketTimeoutMS	        5000	    Таймаут чтения/записи
-
-## Или лучше хранить настройки таймаута в Secret:
-# -> в процессе тестирования параметры из config-repo игнорировались, а
-## сработали те, что из Secret:
-
-## kubectl create secret generic mongodb-credentials \
-#  --from-literal=MONGO_URI='mongodb://rootadmin:supersecretpassword@tasks-mongodb-service:27017/tasksdb?authSource=admin&serverSelectionTimeoutMS=2000&connectTimeoutMS=2000&socketTimeoutMS=5000' \
-#  --dry-run=client -o yaml | kubectl apply -f -
-# kubectl rollout restart deploy/tasks-service
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/tasksdb
