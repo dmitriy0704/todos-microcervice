@@ -8,8 +8,9 @@ import io.github.resilience4j.bulkhead.BulkheadFullException;
 import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -22,24 +23,33 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final TaskEventProducer producer;
+    private final Counter tasksCreated;
+    private final Counter tasksFailed;
 
     public TaskService(
             TaskRepository taskRepository,
-            TaskEventProducer producer
+            TaskEventProducer producer,
+            MeterRegistry registry
     ) {
         this.taskRepository = taskRepository;
         this.producer = producer;
+        this.tasksCreated = Counter.builder("tasks_created_count")
+                .description("Total number of tasks successfully created")
+                .tag("application", "tasks-service")
+                .register(registry);
+        this.tasksFailed = Counter.builder("tasks_failed_count")
+                .description("Total number of task creation failures")
+                .tag("application", "tasks-service")
+                .register(registry);
     }
 
     public List<Tasks> getAllTasks() {
         return taskRepository.findAll();
     }
 
-
     public Optional<Tasks> getTaskById(Long id) {
         return taskRepository.findById(id);
     }
-
 
     //-> считает ошибки; если их больше 50% за последние 10 вызовов — размыкает цепь,
     // если цепь разомкнута или все попытки провалились — вызывается fallbackCreateTas.
@@ -62,6 +72,7 @@ public class TaskService {
                         "USER abc123",
                         "CREATED")
         );
+        tasksCreated.increment();   // ← +1 при успехе
         return t;
     }
 
@@ -75,7 +86,7 @@ public class TaskService {
         // Вариант 2: сохранить в очередь для повторной обработки
         // Вариант 3: бросить кастомное исключение
 
-
+        tasksFailed.increment();    // ← +1 при любой ошибке
         if (t instanceof BulkheadFullException) {
             log.warn("Bulkhead full: too many concurrent requests, task={}", task.getId());
             throw new ServiceUnavailableException(

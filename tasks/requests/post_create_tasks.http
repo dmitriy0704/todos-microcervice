@@ -1,0 +1,13 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=IntelliJ IDEA
+
+### POST запрос создания задачи
+POST http://localhost/tasks/create
+Content-Type: application/json
+
+{
+    "title": "New tasksewew",
+    "description": "Новая задача100ds",
+    "completed": true
+}

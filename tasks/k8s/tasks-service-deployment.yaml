@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: tasks-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8091"
+        prometheus.io/path: "/actuator/prometheus"
     spec:
       initContainers: # Так под tasks-service запускается только после config-server
         - name: wait-for-config

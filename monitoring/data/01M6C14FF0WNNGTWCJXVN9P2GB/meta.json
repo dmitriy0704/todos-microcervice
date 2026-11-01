@@ -1,0 +1,18 @@
+{
+	"ulid": "01M6C14FF0WNNGTWCJXVN9P2GB",
+	"minTime": 1793534400000,
+	"maxTime": 1793541600000,
+	"stats": {
+		"numSamples": 738,
+		"numFloatSamples": 738,
+		"numSeries": 246,
+		"numChunks": 246
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01M6C14FF0WNNGTWCJXVN9P2GB"
+		]
+	},
+	"version": 1
+}
