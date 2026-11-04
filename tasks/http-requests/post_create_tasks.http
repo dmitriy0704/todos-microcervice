@@ -2,6 +2,9 @@
 GET https://examples.http-client.intellij.net/get
     ?generated-in=IntelliJ IDEA
 
+### DELETE tasks by id
+DELETE http://localhost/tasks/414
+
 ### POST запрос создания задачи
 POST http://localhost/tasks/create
 Content-Type: application/json
