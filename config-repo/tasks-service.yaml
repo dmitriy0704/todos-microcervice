@@ -3,7 +3,7 @@ spring:
     url: jdbc:postgresql://tasks-postgres-service:5432/tasksdb
     hikari:
       maximum-pool-size: 30      # было 10
-      connection-timeout: 3000   # 3 секунды вместо 30
+      connection-timeout: 3000   # 3 секунды вместо 30.
   jpa:
     hibernate:
       ddl-auto: update   # ← должно быть update или create
@@ -11,3 +11,4 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+      jakarta.persistence.query.timeout: 3000   # 3s на запрос
