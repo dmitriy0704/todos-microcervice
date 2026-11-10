@@ -1,9 +1,9 @@
 spring:
   application:
     name: tasks-service
-  threads: # Включает виртуальные потоки
+  threads: # Включает виртуальные потоки, но выключает параметры управления потоками Tomcat
     virtual:
-      enabled: true
+      enabled: false # Выключим, пока тестируем нагрузки на Tomcat
   config:
     import: configserver:http://config-server:8888  #<- в таком виде tasks-service ждет запуска config-server, а так было  optional:configserver:http://config-server:8888
 
@@ -41,15 +41,43 @@ spring:
         linger.ms: 5
         batch.size: 16384
 
+
+# НАСТРОЙКИ СЕРВЕРА TOMCAT:
+# (настройка коннектов БД вынесена вместе с общими настройками
+# подключения в config-repo/tasks-service.md)
 server:
   port: 8091
+  # параметры управления потоками Tomcat выключаются при включении виртуальных потоков
+  tomcat:
+    mbeanregistry:
+      enabled: true  # ← включает Tomcat MBeans → метрики потоков
+    threads:
+      # - это потолок вашей одновременной обработки. Приложение может
+      # одновременно выполнять ровно 400 запросов. Если придет 401-й запрос,
+      # Tomcat не будет создавать для него поток.
+      max: 400
+      # - это «горячий старт». При запуске приложения Tomcat сразу создает
+      # 20 потоков и держит их наготове, чтобы первые пользователи не ждали,
+      # пока поток создастся в ОС.
+      min-spare: 20
+      # - это длина очереди на уровне операционной системы (TCP backlog).
+    accept-count: 200
+    #-> Пояснение:
+    # • Если у вас заняты все max: 400 потоков, новые запросы не отбрасываются
+    # сразу. Они встают в очередь внутри ОС.
+    # • Ваша очередь может вместить ровно 200 запросов.
+    # • Если в очереди уже лежит 200 запросов, а потоки всё еще заняты, то
+    # 601-й запрос упадет сразу с ошибкой Connection refused (в k6 это выглядит
+    # как dial tcp: connect: connection refused).
 
-# Для настройки актуатора:
+
+
+# НАСТРОЙКИ МЕТРИК АКТУАТОРА
 management:
   endpoints: # Открыть эндпоинты (health, info, metrics, env и др.)
     web:
       exposure:
-        include: health,info,metrics,prometheus,env,configprops,circuitbreakers,circuitbreakerevents,retries,ratelimiters,bulkheads
+        include: health,info,metrics,threaddump,prometheus,env,configprops,circuitbreakers,circuitbreakerevents,retries,ratelimiters,bulkheads
   metrics:
     tags:
       application: ${spring.application.name}   # метка для фильтрации в Grafana
@@ -71,12 +99,13 @@ management:
   # Пример выделения Actuator на отдельный порт для безопасности (опционально)
   # management.server.port=9001
 
-#logging:
+# ЛОГИРОВАНИЕ:
 #  level:
 #    org.springframework.cloud.config: DEBUG
 #    org.springframework.boot.context.config: DEBUG
 
-# Настройка отказоустойчивости:
+
+# ОТКАЗОУСТОЙЧИВОСТЬ:
 resilience4j:
   # Автоматический выключатель
   circuitbreaker: #-> Соответствует @CircuitBreaker(name = "postgres", fallbackMethod = "fallbackCreateTask")
@@ -108,8 +137,7 @@ resilience4j:
           - java.sql.SQLException # Общая ошибка SQL (fallback)
           - java.net.ConnectException # Сетевые ошибки
           - java.net.SocketTimeoutException # Сетевые ошибки
-
-  retry: #-> Соответствует @Retry(name = "postgres") //-> перехватывает вызов и повторяет его до 3 раз при ошибке
+  retry: #-> Соответствует @Retry(name = "postgres") //-> перехватывает вызов и повторяет его до 3 раз при ошибке; //    @Retry(name = "postgres") - опасно для POST - возможны дубликаты
     instances:
       postgres:
         maxAttempts: 2 # Сколько раз повторять при ошибке (3 для прода)
@@ -129,8 +157,9 @@ resilience4j:
   bulkhead: #-> Соответствует @Bulkhead(name = "postgres", type = Bulkhead.Type.SEMAPHORE, fallbackMethod = "fallbackCreateTask")
     instances:
       postgres:
-        maxConcurrentCalls: 10 #-> Количество одновременных вызовов метода
-        maxWaitDuration: 100ms #-> Дополнительные запросы будут ожидать до 100ms или будут отклонены
+        maxConcurrentCalls: 10 #-> Количество одновременных вызовов метода, над которым стоит @Bulkhead
+        maxWaitDuration: 0 #-> 0 - НЕ ждать, сразу fallback; 100ms - Дополнительные запросы будут ожидать до 100ms или будут отклонены
+        # С maxWaitDuration: 0 запросы, не получившие слот мгновенно, получают BulkheadFullException → fallback → быстрый 503. Это лучше, чем 60-секундный таймаут.
 
 # Ограничитель скорости RateLimiter, настроен в Istio Gateway
 #  ratelimiter:

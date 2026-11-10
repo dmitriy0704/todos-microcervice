@@ -43,16 +43,22 @@ public class TasksController {
     }
 
     @PostMapping("/create")
+    @ResponseStatus(HttpStatus.CREATED)   // ← добавить статус 201
     public Tasks createTask(@RequestBody Tasks tasks) {
         return taskService.createTask(tasks);
     }
-
 
     //-> Получение объекта пользователя из сервиса users-service
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable String id) {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteTask(@PathVariable Long id){
+        taskService.deleteTasks(id);
+    }
+
 //
 //    //-> Отправка сообщения в кафку
 //    @PostMapping("/sendmessage")
