@@ -1,0 +1,18 @@
+{
+	"ulid": "01M6RXBTQRZSJX0R894ER71TK2",
+	"minTime": 1793973614819,
+	"maxTime": 1793980800000,
+	"stats": {
+		"numSamples": 1016486,
+		"numFloatSamples": 1016486,
+		"numSeries": 545,
+		"numChunks": 8537
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01M6RXBTQRZSJX0R894ER71TK2"
+		]
+	},
+	"version": 1
+}

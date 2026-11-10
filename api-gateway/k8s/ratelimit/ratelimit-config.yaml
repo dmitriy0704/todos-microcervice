@@ -12,7 +12,7 @@ data:
         value: "*"
         rate_limit:
           unit: minute
-          requests_per_unit: 10
+          requests_per_unit: 30
       # Правило 2: общий лимит 100 запросов в минуту на весь сервис
       - key: generic_key
         value: global

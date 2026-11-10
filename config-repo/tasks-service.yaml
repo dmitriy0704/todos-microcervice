@@ -2,8 +2,9 @@ spring:
   datasource:
     url: jdbc:postgresql://tasks-postgres-service:5432/tasksdb
     hikari:
-      maximum-pool-size: 30      # было 10
-      connection-timeout: 3000   # 3 секунды вместо 30.
+      maximum-pool-size: 30      # Максимальное количество потоков, по умолчанию 10
+      # По умолчанию поток ждет коннект из пула ровно 30 секунд (connection-timeout: 30000ms).
+      connection-timeout: 3000   # Для теста нагрузки ставим 3 секунды вместо 30.
   jpa:
     hibernate:
       ddl-auto: update   # ← должно быть update или create
