@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: spring-cloud-gateway
+  name: sc-gateway #-> spring-cloud-gatewat
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: spring-cloud-gateway
+      app: sc-gateway #-> spring-cloud-gatewat
   template:
     metadata:
       labels:
-        app: spring-cloud-gateway
+        app: sc-gateway #-> spring-cloud-gatewat
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
@@ -20,15 +20,15 @@ spec:
         sidecar.istio.io/inject: "true"
     spec:
       containers:
-        - name: spring-cloud-gateway
+        - name: sc-gateway #-> spring-cloud-gatewat
           # Имя образа, под которым вы соберете приложение шлюза в Minikube
           image: myorg/api-gateway:1.0
           # Запрещаем K8s искать образ в интернете (Docker Hub)
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080 # Порт, на котором слушает ваш Gateway
           env:
-            - name: SPRING_CLOUD_GATEWAY_HTTPCLIENT_PROTOCOLS
+            - name: SC_GATEWAY_HTTPCLIENT_PROTOCOLS
               value: "HTTP11" # 👈 Задаем протокол прямо на уровне Kubernetes
           startupProbe: # Под не перейдет в состояние Running, пока под не будет готов.
                         # Тогда Kubernetes не будет пускать трафик на под,
@@ -51,7 +51,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spring-cloud-gateway # 👈 Это имя мы указывали в VirtualService Istio
+  name: sc-gateway #-> spring-cloud-gatewat. Это имя мы указывали в VirtualService Istio.
   namespace: default
 spec:
   ports:
@@ -60,4 +60,4 @@ spec:
       targetPort: 8080 # Реальный порт, на котором слушает Spring Cloud Gateway
       protocol: TCP
   selector:
-    app: spring-cloud-gateway
+    app: sc-gateway

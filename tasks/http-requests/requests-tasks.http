@@ -6,7 +6,7 @@ GET https://examples.http-client.intellij.net/get
 DELETE http://localhost/tasks/414
 
 ### POST запрос создания задачи
-POST http://localhost/tasks/create
+POST http://localhost:8091/tasks/create
 Content-Type: application/json
 
 {
@@ -14,3 +14,6 @@ Content-Type: application/json
     "description": "Новая задача100ds",
     "completed": true
 }
+
+### GET запрос получения всех задач
+GET http://localhost:8091/tasks

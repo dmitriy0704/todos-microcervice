@@ -1,0 +1,62 @@
+server:
+  tomcat:
+    mbeanregistry:
+      enabled: true
+    threads:
+      max: 400
+      min-spare: 20
+    accept-count: 200
+spring:
+  # Отключение компонентов кластера:
+  kafka:
+    listener:
+      auto-startup: false # Не запускать @KafkaListener при старте
+    admin:
+      auto-create: false  # Не пытаться создавать топики и проверять кластер при старте
+
+  # Срабатывает "No spring.config.import property has been defined",
+  # потому что в pom.xml добавлены зависимости spring-cloud и config-server
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tasksdb_local
+    username: admin
+    password: secret
+    driver-class-name: org.postgresql.Driver
+
+    # Настройки пула соединений HikariCP (используется по умолчанию в Spring Boot)
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 3000
+  jpa:
+    # Тип базы данных (помогает избежать лишних запросов при старте)
+    database: postgresql
+    # Показывать сгенерированные SQL-запросы в консоли
+    show-sql: true
+    # Отключает ленивую загрузку вне транзакции (хорошая практика, убирает предупреждения в логах)
+    open-in-view: false
+    hibernate:
+      # Стратегия работы со схемой БД:
+      # update - обновляет таблицы по Entity (удобно для быстрых тестов)
+      # validate - только проверяет соответствие (рекомендуется для продакшена с Flyway/Liquibase)
+      # create-drop - создает при старте, удаляет при остановке
+      ddl-auto: update
+    properties:
+      hibernate:
+        # Форматировать SQL в консоли, чтобы он легко читался
+        format_sql: true
+        # Явное указание диалекта (в современных версиях Spring Boot определяется сам, но иногда полезно)
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,threaddump
+  metrics:
+    tags:
+      application: tasks-service

@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway # внешний gateway
 metadata:
-  name: app-gateway # istio-gateway
+  name: tasks-app-gateway # istio-gateway
 spec:
   selector:
     istio: ingressgateway # Говорим использовать встроенный шлюз Istio

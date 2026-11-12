@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tasks-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: tasksdb_local
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M    # ограничиваем, чтобы не жрал всё
+
+volumes:
+  pgdata:
+
+
+# actions:
+  # Базовая команда запуска
+    # docker compose -f docker-compose.local.yml up -d
+  # Полезные команды для управления таким файлом
+  # Остановка и удаление контейнеров: Чтобы остановить сервисы, запущенные из конкретного файла, флаг -f нужно указывать снова.bash
+    # docker compose -f docker-compose.local.yml down
+  # Остановка с удалением данных (volumes): Полезно, если нужно полностью очистить тестовую базу Postgres и начать с нуля.bash
+    # docker compose -f docker-compose.local.yml down -v
+  # Просмотр логов: Выводит логи только тех сервисов, которые описаны в этом файле.bash.
+    # docker compose -f docker-compose.local.yml logs -f
+  # Пересборка образов перед запуском: Пригодится, если в файле описан не только Postgres, но и сборка самого Spring-приложения.bash.
+    # docker compose -f docker-compose.local.yml up -d --build
+  # Важный нюанс с именем проекта
+  # По умолчанию Docker Compose называет создаваемую сеть и тома по имени папки, в которой вы запускаете команду. Если у вас в одной папке лежат два разных compose-файла (например, для локальных тестов и для стенда), они могут конфликтовать по именам контейнеров или сетей.
+  # Чтобы этого избежать, добавьте флаг -p (имя проекта):
+    # docker compose -f docker-compose.local.yml -p my-app-local up -d

@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tasks-service
+  name: tasks
 spec:
   replicas: 1 # Количество запущенных экземпляров вашего приложения
   selector:
     matchLabels:
-      app: tasks-service
+      app: tasks
   template:
     metadata:
       labels:
-        app: tasks-service
+        app: tasks
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8091"
@@ -28,17 +28,19 @@ spec:
                 sleep 2
               done
       containers:
-        - name: tasks-service # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
-          image: myorg/tasks-service:1.0
+        - name: tasks # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
+          image: myorg/tasks:1.0
           imagePullPolicy: Never # Говорим K8s не искать образ в Docker Hub
           ports:
             - containerPort: 8091
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "k8s"
             - name: SERVER_PORT
               value: "8091"
             - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
-                secretKeyRef: # данные берутся из секрета(tasks-secret.yaml)
+                secretKeyRef: # данные берутся из секрета(tasks-postgres-secret.yaml)
                   name: postgres-credentials
                   key: POSTGRES_USER
             - name: SPRING_DATASOURCE_PASSWORD
@@ -52,10 +54,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tasks-service
+  name: tasks
 spec:
   selector:
-    app: tasks-service # Должен совпадать с deploy.template.metadata.labels
+    app: tasks # Должен совпадать с deploy.template.metadata.labels
   ports:
     - name: http
       port: 80
