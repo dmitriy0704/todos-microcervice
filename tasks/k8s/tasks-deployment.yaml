@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tasks
+  name: tasks-service
 spec:
   replicas: 1 # Количество запущенных экземпляров вашего приложения
   selector:
     matchLabels:
-      app: tasks
+      app: tasks-service
   template:
     metadata:
       labels:
-        app: tasks
+        app: tasks-service
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8091"
@@ -28,8 +28,8 @@ spec:
                 sleep 2
               done
       containers:
-        - name: tasks # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
-          image: myorg/tasks:1.0
+        - name: tasks-service # ⚠️ Локальный образ, который мы соберем внутри окружения Minikube
+          image: myorg/tasks-service:1.0
           imagePullPolicy: Never # Говорим K8s не искать образ в Docker Hub
           ports:
             - containerPort: 8091
@@ -54,10 +54,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: tasks
+  name: tasks-service
 spec:
   selector:
-    app: tasks # Должен совпадать с deploy.template.metadata.labels
+    app: tasks-service # Должен совпадать с deploy.template.metadata.labels
   ports:
     - name: http
       port: 80

@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: tasks-service-cb
+  name: tasks-cb
   namespace: default
 spec:
   host: tasks-service  # ⚠️ Укажите реальное имя вашего сервиса

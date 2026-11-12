@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-loadtest
+spec:
+  template:
+    spec:
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command: ["k6", "run", "/scripts/script.js"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      restartPolicy: Never
+      volumes:
+        - name: script
+          configMap:
+            name: k6-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-script
+data:
+  script.js: |
+    import http from 'k6/http';
+    import { check, sleep } from 'k6';
+
+    export const options = {
+        stages: [
+            { duration: '30s', target: 100 },
+            { duration: '30s', target: 500 },
+            { duration: '30s', target: 1000 },
+            { duration: '30s', target: 0 },
+        ],
+    };
+
+    export default function () {
+        const url = 'http://tasks-service/tasks/create';
+        const payload = JSON.stringify({
+            title: `task-${__VU}-${__ITER}`, // Уникальное имя для каждой задачи
+            description: `NEW task-${__VU}-${__ITER}`,
+            completed: true
+        });
+        
+        const params = {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-ID': `user-${__VU}`,   // каждый VU — отдельный пользователь
+            },
+        };
+
+    // Отправляем POST-запрос
+        const res = http.post(url, payload, params);
+    // Проверяем, что статус ответа — 201 Created
+        check(res, {'status is 201': (r) => r.status === 201,});
+    // Пауза в 1 секунду, имитируя пользователя, читающего ответ. Используется для stage
+        sleep(1);
+    }

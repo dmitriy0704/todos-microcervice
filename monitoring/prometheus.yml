@@ -6,3 +6,11 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     static_configs:
       - targets: ['127.0.0.1:8091']
+
+
+# Метрики k6 при нагрузочном тестировании можно отправить в Prometheus.
+# Для этого скрипт k6 нужно запустить с параметрами:
+# K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
+#k6 run -o experimental-prometheus-rw script.js
+# а сам Prometheus с параметром:
+# --web.enable-remote-write-receiver

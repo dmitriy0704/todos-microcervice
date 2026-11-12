@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: api-gateway
   cloud:
     gateway:
       server:
@@ -62,6 +60,3 @@ logging:
     org.springframework.cloud.gateway: TRACE
     org.springframework.http.server.reactive: DEBUG
     org.springframework.web.reactive: DEBUG
-    
-server:
-  port: 8080

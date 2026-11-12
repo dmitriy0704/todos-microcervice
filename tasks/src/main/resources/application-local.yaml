@@ -59,4 +59,4 @@ management:
         include: health,info,prometheus,metrics,threaddump
   metrics:
     tags:
-      application: tasks-service
+      application: tasks

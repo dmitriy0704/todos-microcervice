@@ -1,0 +1,18 @@
+{
+	"ulid": "01M74Z68PEFG8WR4Y6TZDHSTDT",
+	"minTime": 1793980800000,
+	"maxTime": 1793988000000,
+	"stats": {
+		"numSamples": 22237,
+		"numFloatSamples": 22237,
+		"numSeries": 340,
+		"numChunks": 440
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01M74Z68PEFG8WR4Y6TZDHSTDT"
+		]
+	},
+	"version": 1
+}

@@ -4,9 +4,7 @@ import dev.folomkin.tasks.entity.Tasks;
 import dev.folomkin.tasks.exception.ServiceUnavailableException;
 import dev.folomkin.tasks.repository.TaskRepository;
 import io.github.resilience4j.bulkhead.BulkheadFullException;
-import io.github.resilience4j.bulkhead.annotation.Bulkhead;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -60,18 +58,15 @@ public class TaskService {
     //-> перехватывает вызов и повторяет его до 3 раз при ошибке
     //-> Реализация паттерна Автоматический выключатель
     // Fallback — вызывается, когда цепь разомкнута или все попытки исчерпаны
-    @CircuitBreaker(name = "postgres", fallbackMethod = "fallbackCreateTask")
+//#-> уберем для теста: @CircuitBreaker(name = "postgres", fallbackMethod = "fallbackCreateTask")
     //-> Bulkhead: ограничивает количество одновременных запросов
-    @Bulkhead(name = "postgres")
+    //#-> уберем для теста: @Bulkhead(name = "postgres")
     //-> убираем fallback, чтобы fail-increment не запускался дважды
     //-> @TimeLimiter(name = "mongoDb") //-> прерывает вызов, если он длится дольше 3 секунд. Для асинхронных методов
     //-> @RateLimiter(name = "mongoDb") - ограничение количества запросов, уточнить от кого
     public Tasks createTask(Tasks task) {
-        log.info("ENTERED createTask()");
-        log.info("SAVING TASK TO POSTGRES");
         Tasks savedTask = taskRepository.save(task);
         tasksCreated.increment();   // ← +1 при успехе
-        log.info("RETURN TASK");
         return savedTask;
 //        Tasks t = taskRepository.save(task);
 //        producer.sendTaskCreatedEvent( //-> отправка сообщения в Kafka

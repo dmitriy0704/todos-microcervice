@@ -70,7 +70,7 @@ spec:
 Это приложение-шлюз, которое будет принимать трафик от Istio и маршрутизировать
 его на `tasks-service`.
 
-**`spring-cloud-gateway-deployment.yaml`**
+**`gateway-deployment.yaml`**
 
 ```yaml
   apiVersion: apps/v1

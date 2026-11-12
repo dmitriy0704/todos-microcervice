@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class TaskEventProducer {
 
-    // Указываем конкретные типы: Ключ — String, Значение — TaskEvent
+    //-> Указываем конкретные типы: Ключ — String, Значение — TaskEvent
     // Spring Boot автоматически настроит этот бин на основе application.properties
+    // -> Для локального тестирования
     private final KafkaTemplate<String, TaskEvent> kafkaTemplate;
-
 
     public TaskEventProducer(KafkaTemplate<String, TaskEvent> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
