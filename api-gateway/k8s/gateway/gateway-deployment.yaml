@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sc-gateway #-> spring-cloud-gatewat
+  name: spring-cloud-gateway
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: sc-gateway #-> spring-cloud-gatewat
+      app: spring-cloud-gateway
   template:
     metadata:
       labels:
-        app: sc-gateway #-> spring-cloud-gatewat
+        app: spring-cloud-gateway
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
@@ -19,8 +19,9 @@ spec:
         # Разрешаем Istio автоматически подсадить прокси Envoy внутрь этого Пода
         sidecar.istio.io/inject: "true"
     spec:
+      serviceAccountName: gateway-sa
       containers:
-        - name: sc-gateway #-> spring-cloud-gatewat
+        - name: spring-cloud-gateway #-> spring-cloud-gatewat
           # Имя образа, под которым вы соберете приложение шлюза в Minikube
           image: myorg/api-gateway:1.0
           # Запрещаем K8s искать образ в интернете (Docker Hub)
@@ -51,7 +52,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: sc-gateway #-> spring-cloud-gatewat. Это имя мы указывали в VirtualService Istio.
+  name: spring-cloud-gateway #-> spring-cloud-gatewat. Это имя мы указывали в VirtualService Istio.
   namespace: default
 spec:
   ports:
@@ -60,4 +61,4 @@ spec:
       targetPort: 8080 # Реальный порт, на котором слушает Spring Cloud Gateway
       protocol: TCP
   selector:
-    app: sc-gateway
+    app: spring-cloud-gateway

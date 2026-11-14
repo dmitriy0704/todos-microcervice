@@ -2,7 +2,10 @@
 
 ## Слой 1: tasks-service + PostgreSQL (baseline, который вы уже измерили)
 
-**Нужно:**
+
+### Нужно:
+
+Сервисы запускаются по порядку:
 
 **PostgreSQL**:
 
@@ -12,18 +15,20 @@
 - postgres-secret.yaml: `tasks/k8s/db/tasks-postgres-secret.yaml`,
 - postgres-pvc.yaml:`tasks-postgres-deployment.yaml`
 
-**tasks-service**:
-
-- tasks-service-deployment.yaml: `tasks-service/k8s/tasks-deployment.yaml`,
-- tasks-service-service.yaml:`tasks-service/k8s/tasks-deployment.yaml`,
-- tasks-service-secret.yaml:`tasks/k8s/db/tasks-postgres-secret.yaml`
-
-**(опционально)** Config Server:
+**Config Server**(подтягиваются конфиги для подключения tasks-service к БД) :
 
 - config-server-deployment.yaml:
   `config-server/k8s/config-server-deployment.yaml`,
 - config-server-service.yaml :
   `config-server/k8s/config-server-deployment.yaml`
+
+
+**tasks-service**(запускается и получает настройки подключения из config server):
+
+- tasks-service-deployment.yaml: `tasks-service/k8s/tasks-deployment.yaml`,
+- tasks-service-service.yaml:`tasks-service/k8s/tasks-deployment.yaml`,
+- tasks-service-secret.yaml:`tasks/k8s/db/tasks-postgres-secret.yaml`
+
 
 **НЕ нужно:**
 
@@ -40,15 +45,17 @@
 
 **Добавляете:**
 
-**Gateway**:                          -
+**RBAC** (если используете `lb://`, сначала запустить его):
+
+- -gateway-role.yaml: `../k8s/gateway/gateway-rbac.yaml`
+- gateway-rolebinding.yaml: `../k8s/gateway/gateway-rbac.yaml`
+
+
+**Gateway(потом его)**:
 
 - gateway-deployment.yaml: `../k8s/gateway/gateway-deployment.yaml`
 - gateway-service.yaml: `../k8s/gateway/gateway-deployment.yaml`
 
-**RBAC** (если используете `lb://`):
-
-- -gateway-role.yaml: `../k8s/gateway/gateway-rbac.yaml`
-- gateway-rolebinding.yaml: `../k8s/gateway/gateway-rbac.yaml`
 
 **Config Server** (если не было):
 

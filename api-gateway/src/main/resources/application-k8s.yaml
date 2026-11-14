@@ -4,19 +4,20 @@ spring:
       server:
         webflux:
           routes:
-            - id: tasks-service-route
+            - id: tasks-route
               # Куда отправляем трафик (внутреннее DNS-имя K8s сервиса задач)
               uri: lb://tasks-service  #http://tasks-service.default.svc.cluster.local
               predicates:
                 # Ловим все входящие запросы, которые начинаются с /api/tasks
                 - Path=/tasks/**
-#              filters:
-#                 Отрезаем первый префикс (/api), чтобы в tasks-service улетал чистый путь /tasks
-#                - StripPrefix=1
+          #              filters:
+          #                 Отрезаем первый префикс (/api), чтобы в tasks-service улетал чистый путь /tasks
+          #                - StripPrefix=1
           discovery:
             locator:
               enabled: true
               lower-case-service-id: true
+
     kubernetes:
       discovery:
         enabled: true

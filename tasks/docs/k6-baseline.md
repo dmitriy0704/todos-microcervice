@@ -1,3 +1,5 @@
+# Local:
+
 # Baseline: tasks-service + PostgreSQL
 
 ## Условия
@@ -43,7 +45,7 @@ Layer 2: + Spring Cloud Gateway
 - HikariCP: 30 active, 15 pending (пул ИСЧЕРПАН)
 - Gateway создаёт в 3 раза больше давления на пул
 
-# Запуск сервисов в Kind
+# Kind
 
 ## Слой 1: tasks-service + postgres
 
@@ -53,3 +55,60 @@ Baseline (kind): tasks-service + PostgreSQL
 - max = 35ms (без JIT/port-forward overhead)
 - k6 внутри кластера, DNS-резолвинг по имени Service
 
+## Слой 2: + Spring Cloud Gateway
+
+Результаты теста
+
+VU:
+500 - 1000 -1000 -0
+
+HTTP
+http_req_duration..............: avg=19.3ms min=626.48µs med=2.39ms max=1.27s p
+(90)=11.8ms p (95)=29.34ms
+{ expected_response:true }...: avg=19.3ms min=626.48µs med=2.39ms max=1.27s p
+(90)=11.8ms p (95)=29.34ms
+http_req_failed................: 0.00% 0 out of 74019
+http_reqs......................: 74019 612.408189/s
+
+VU:
+1000 - 1250 -1250 -0
+
+HTTP
+http_req_duration..............: avg=22.89ms min=657.08µs med=2.34ms max=1.31s p
+(90)=25.32ms p (95)=91.72ms
+{ expected_response:true }...: avg=22.89ms min=657.08µs med=2.34ms max=1.31s p
+(90)=25.32ms p (95)=91.72ms
+http_req_failed................: 0.00% 0 out of 103212
+http_reqs......................: 103212 854.700019/s
+
+VU:
+1000 - 1250 -1500 -0
+
+HTTP
+http_req_duration..............: avg=32.97ms min=358.4µs med=2.58ms max=1.81s p
+(90)=55.74ms p (95)=124.34ms
+{ expected_response:true }...: avg=32.97ms min=358.4µs med=2.58ms max=1.81s p
+(90)=55.74ms p (95)=124.34ms
+http_req_failed................: 0.00% 0 out of 109544
+http_reqs......................: 109544 906.60288/s
+
+VU:
+1000 - 1500 -2000 -0
+
+HTTP
+http_req_duration..............: avg=111.59ms min=636.58µs med=11.57ms max=1.64s
+p (90)=333.63ms p (95)=507.59ms
+{ expected_response:true }...: avg=111.59ms min=636.58µs med=11.57ms max=1.64s p
+(90)=333.63ms p (95)=507.59ms
+http_req_failed................: 0.00% 0 out of 122292
+http_reqs......................: 122292 1011.816797/s
+
+#### Итог
+Layer 2 (Spring Cloud Gateway):
+- 900 VU:  p(95) = 6.22ms, 560 RPS, +3.3ms overhead  ← чисто
+- 1250 VU: p(95) = 91.72ms, 854 RPS                   ← деградация начинается
+- 1500 VU: p(95) = 124.34ms, 906 RPS                  ← серая зона
+- 2000 VU: p(95) = 507.59ms, 1011 RPS                 ← потолок RPS
+- Точка деградации: ~1000 VU (между 900 и 1250)
+- Capacity: ~800–900 RPS (потолок ~1000 RPS)
+- 0% ошибок во всех тестах

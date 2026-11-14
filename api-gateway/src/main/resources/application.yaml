@@ -2,7 +2,7 @@ spring:
   application:
     name: api-gateway
   profiles:
-    active: local
+    active: k8s
 
 server:
   port: 8080
