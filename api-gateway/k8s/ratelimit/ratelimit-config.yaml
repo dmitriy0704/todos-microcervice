@@ -7,12 +7,12 @@ data:
   config.yaml: |
     domain: tasks-app
     descriptors:
-      # Правило 1: не более 5 запросов в минуту с одного IP на создание задачи("/tasks/create", иначе 429)
+      # Правило 1: не более 5 запросов в минуту с одного IP на все урлы, иначе 429)
       - key: remote_address
-        value: "*"
+        # value: "*" # -> Фильтр по id-адресам, но * не соответствует ни одному адресу. Можно удалить. 
         rate_limit:
           unit: minute
-          requests_per_unit: 30
+          requests_per_unit: 5
       # Правило 2: общий лимит 100 запросов в минуту на весь сервис
       - key: generic_key
         value: global

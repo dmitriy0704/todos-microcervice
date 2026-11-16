@@ -34,12 +34,12 @@ spec:
     - applyTo: HTTP_FILTER
       match:
         context: GATEWAY
-#        listener:
-#          filterChain:
-#            filter:
-#              name: envoy.filters.network.http_connection_manager
-#              subFilter:
-#                name: envoy.filters.http.router
+        listener:
+          filterChain:
+            filter:
+              name: envoy.filters.network.http_connection_manager
+              subFilter:
+                name: envoy.filters.http.router
       patch:
         operation: INSERT_FIRST
         value:
@@ -56,20 +56,21 @@ spec:
               transport_api_version: V3
 
     # 3. Определяем действия для формирования дескрипторов
-    - applyTo: VIRTUAL_HOST
+    - applyTo: HTTP_ROUTE
       match:
         context: GATEWAY
         routeConfiguration:
           vhost:
             name: "*:80"   # ← имя vhost из config dump
             route:
-              action: ANY
+              name: "gateway-route"
       patch:
         operation: MERGE
         value:
-          rate_limits:
-            - actions:
-                - remote_address: { }
-            - actions:
-                - generic_key:
-                    descriptor_value: global
+          route:
+            rate_limits:
+              - actions:
+                  - remote_address: { }
+              - actions:
+                  - generic_key:
+                      descriptor_value: global

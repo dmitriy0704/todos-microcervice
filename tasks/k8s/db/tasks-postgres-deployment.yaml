@@ -23,7 +23,7 @@ spec:
       labels:
         app: tasks-postgres
       annotations:
-        sidecar.istio.io/inject: "false" # 👈 Эта строка запретит Istio трогать базу
+        sidecar.istio.io/inject: "false" # 👈 Эта строка запретит Istio трогать базу - не создаются рядом sidecar
     spec:
       containers:
         - name: postgres
