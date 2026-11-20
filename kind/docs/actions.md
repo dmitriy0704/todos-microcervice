@@ -32,8 +32,8 @@ kind version
 ```yaml
    kind: Cluster
    apiVersion: kind.x-k8s.io/v1alpha4
+   name: tasks-cluster
    nodes:
-
      - role: control-plane
        extraPortMappings:
          - containerPort: 30080
@@ -44,7 +44,7 @@ kind version
 2. Создайте кластер с этим конфигом:
 
 ```bash
-   kind create cluster --name microservices --config kind-config.yaml
+   kind create cluster --name [cluster-name] --config kind-config.yaml
  ```
 
 После этого kubectl автоматически переключится на новый кластер

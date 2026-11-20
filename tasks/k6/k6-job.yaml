@@ -4,6 +4,9 @@ metadata:
   name: k6-loadtest
 spec:
   template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"   # ← отключаем sidecar для k6
     spec:
       containers:
         - name: k6
@@ -29,8 +32,8 @@ data:
         
     export const options = {
         stages: [
-            { duration: '30s', target: 1000 },
             { duration: '30s', target: 1500 },
+            { duration: '30s', target: 1750 },
             { duration: '30s', target: 2000 },
             { duration: '30s', target: 0 },
         ],
@@ -38,7 +41,6 @@ data:
     
     // const BASE_URL = 'http://spring-cloud-gateway:80';   // ← имя Gateway. Слой 3 - ingres-gateway 
     const BASE_URL = 'http://istio-ingressgateway.istio-system:80';
-    
     
     export default function () {
         const url = `${BASE_URL}/tasks/create`;
