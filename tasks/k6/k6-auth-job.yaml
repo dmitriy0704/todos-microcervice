@@ -1,0 +1,93 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-loadtest-auth
+spec:
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"   # ← отключаем sidecar для k6
+    spec:
+      containers:
+        - name: k6
+          image: grafana/k6:latest
+          command: ["k6", "run", "/scripts/script.js"]
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      restartPolicy: Never
+      volumes:
+        - name: script
+          configMap:
+            name: k6-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-script
+data:
+  script.js: |
+    import http from 'k6/http';
+    import {check, sleep} from 'k6';
+    
+    export const options = {
+        stages: [
+            {duration: '30s', target: 500},
+            {duration: '30s', target: 1000},
+            {duration: '30s', target: 1000},
+            {duration: '30s', target: 0},
+        ],
+    };
+    
+    // const BASE_URL = 'http://spring-cloud-gateway:80';   // ← имя Gateway. Слой 3 - ingres-gateway 
+    const BASE_URL = 'http://istio-ingressgateway.istio-system:80';
+    const KC_URL = 'http://keycloak.default/realms/loadtest/protocol/openid-connect/token';
+    
+    // Получаем 1 токен перед стартом нагрузки, чтобы тестировать ваш сервис, а не Keycloak
+    export function setup() {
+        const res = http.post(KC_URL, {
+            grant_type: 'client_credentials',
+            client_id: 'k6-client',
+            client_secret: 'dH9IuAcbLsDrJRKAAAmvUXC7JgdtB3Dy', //keycloak/clients/cridentials/Client Secret
+        });
+        
+        check(res, {'got token': (r) => r.status === 200});
+        return {token: res.json('access_token')};
+    }
+    
+    
+    export default function (data) {
+        const url = `${BASE_URL}/tasks/create`;
+            
+        const params = {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-ID': `user-${__VU}`,   // каждый VU — отдельный пользователь
+                'Authorization': `Bearer ${data.token}`,
+            },
+        };
+        
+        const payload = JSON.stringify({
+            title: `task-${__VU}-${__ITER}`, // Уникальное имя для каждой задачи
+            description: `NEW task-${__VU}-${__ITER}`,
+            completed: true
+        });
+        
+     
+        
+        // Отправляем POST-запрос
+        const res = http.post(url, payload, params);
+        
+        if (__VU === 1 && __ITER < 5) {
+            console.log(`STATUS: ${res.status}`);
+            console.log(`BODY: ${res.body}`);
+            console.log(`ERROR: ${res.error}`);
+        }
+    
+    // Проверяем, что статус ответа — 201 Created
+        check(res, {
+            'status is 201': (r) => r.status === 201,
+        });
+    // Пауза в 1 секунду, имитируя пользователя, читающего ответ. Используется для stage
+        sleep(1);
+    }

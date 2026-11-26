@@ -1,53 +1,3 @@
-# 1. PostgreSQL для Keycloak в default
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: keycloak-postgres
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: keycloak-postgres
-  template:
-    metadata:
-      labels:
-        app: keycloak-postgres
-      annotations:
-        sidecar.istio.io/inject: "false"
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:16-alpine
-          env:
-            - name: POSTGRES_DB
-              value: "keycloak"
-            - name: POSTGRES_USER
-              value: "keycloak"
-            - name: POSTGRES_PASSWORD
-              value: "keycloak"
-          ports:
-            - containerPort: 5432
-          resources:
-            requests:
-              cpu: "250m"
-              memory: "512Mi"
-            limits:
-              cpu: "1"
-              memory: "1Gi"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: keycloak-postgres
-  namespace: default
-spec:
-  selector:
-    app: keycloak-postgres
-  ports:
-    - port: 5432
-      targetPort: 5432
----
 # 2. Keycloak в default
 apiVersion: apps/v1
 kind: Deployment
@@ -72,6 +22,8 @@ spec:
           args:
             - "start"
           env:
+            - name: KC_CACHE
+              value: "local"
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               value: "admin"
             - name: KC_BOOTSTRAP_ADMIN_PASSWORD
@@ -90,6 +42,8 @@ spec:
               value: "false"
             - name: KC_HEALTH_ENABLED
               value: "true"
+            - name: QUARKUS_DATASOURCE_JDBC_ACQUISITION_TIMEOUT # таймаут подключения к БД
+              value: "30000"     # 30 секунд вместо 5
           ports:
             - name: http
               containerPort: 8080
@@ -101,6 +55,18 @@ spec:
               port: 9000
             initialDelaySeconds: 20
             periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            failureThreshold: 30     # 5 минут на старт
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 10
+            failureThreshold: 5
           resources:
             requests:
               cpu: "500m"
@@ -108,6 +74,7 @@ spec:
             limits:
               cpu: "2"
               memory: "2Gi"
+
 ---
 apiVersion: v1
 kind: Service

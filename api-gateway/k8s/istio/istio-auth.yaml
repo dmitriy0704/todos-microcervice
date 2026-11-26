@@ -1,0 +1,64 @@
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  jwtRules:
+    - issuer: "http://keycloak.default/realms/loadtest"
+      jwksUri: "http://keycloak.default.svc.cluster.local/realms/loadtest/protocol/openid-connect/certs"
+      forwardOriginalToken: true
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: require-jwt-for-tasks
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            requestPrincipals: [ "*" ]
+      to:
+        - operation:
+            paths: [ "/tasks/*" ]
+
+
+# RequestAuthentication (Проверка паспорта):
+# Говорит Istio: «Если в запросе есть JWT-токен (заголовок Authorization:
+# Bearer ...), проверь, что его выдал именно наш Keycloak (issuer), и сверь
+# криптографическую подпись по публичным ключам (`jwksUri»)».
+#	• Важный нюанс: Сам по себе RequestAuthentication не блокирует запросы без
+# токена. Если токен поддельный или просроченный — Istio вернет 401 Unauthorized.
+# Но если токена в запросе вообще нет — Istio пропустит запрос дальше как анонимный.
+
+# AuthorizationPolicy (Фейсконтроль на входе):
+# Работает в паре с первым манифестом и говорит: «На путь /tasks/* пускать
+# только тех, кто успешно прошел проверку в RequestAuthentication
+# (requestPrincipals: ["*"])».
+#  - Если запрос придет на /tasks/create вообще без токена, Istio вернет 403
+# Forbidden.
+#  - Если токен есть и он валидный — Istio пропустит запрос внутрь кластера в
+# ваш spring-cloud-gateway.
+
+# Тестовые запросы:
+# 1. Запускаем keycloak: kubectl port-forward -n default svc/keycloak 8080:80 -> http://localhost:8080/ admin:admin
+# 2. Запускаем тестовый под: kubectl run curl-test --image=curlimages/curl -i --tty --rm -- sh
+# 3. Проверяем тестовым запросом права: ~ $ curl -v -X POST "http://istio-ingressgateway.istio-system/tasks/create"
+# 4. Получение токена и авторизованный запрос:
+# RESPONSE=$(curl -s -X POST "http://keycloak.default/realms/loadtest/protocol/openid-connect/token" -d "grant_type=client_credentials" -d "client_id=k6-client" -d "client_secret=SfvDmnx6rKM0DkmShtSQGqfAdPNE8R12")
+#
+# echo "$RESPONSE"
+#
+# TOKEN=$(echo "$RESPONSE" | sed -n 's/.*"access_token":"\([^"]*\)".*/\1/p')
+# echo "TOKEN_LEN=${#TOKEN}"
+#
+# curl -i -X POST "http://istio-ingressgateway.istio-system/tasks/create" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"title": "test task","description":"desc","completed":true}'
+

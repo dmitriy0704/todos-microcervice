@@ -12,16 +12,16 @@ data:
         value: "*" #-> это wildcard, который соответствует любому IP 
         rate_limit:
           unit: minute
-          requests_per_unit: 5 # Для нагрузочного теста - 1000000
+          requests_per_unit: 1000000 # Для нагрузочного теста - 1000000
       # Правило 2: общий лимит 100 запросов в минуту на весь сервис
       - key: generic_key
         value: global
         rate_limit:
           unit: minute
-          requests_per_unit: 100 # Для нагрузочного теста - 1000000
+          requests_per_unit: 1000000 # Для нагрузочного теста - 1000000
 
 
 # Для перезагрузки конфига
 # kubectl apply -f ratelimit-config.yaml
-#kubectl rollout restart deploy/ratelimit
-#kubectl rollout status deploy/ratelimit
+# kubectl rollout restart deploy/ratelimit
+# kubectl rollout status deploy/ratelimit
