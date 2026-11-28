@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 public class TaskEventConsumer {
 
     @KafkaListener(
-            topics = "tasks-topic",
-            groupId = "users-group"
+            topics = "tasks-events",
+            groupId = "task-processor"
     )
     public void consumeTaskEvent(TaskEvent event,  Acknowledgment acknowledgment) {
         try {

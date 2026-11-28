@@ -5,20 +5,25 @@ spring:
   config:
     import:
       - configserver:http://config-server:8888  #<- в таком виде tasks-service ждет запуска config-server, а так было  optional:configserver:http://config-server:8888
-#      - classpath:config/kafka.yaml # -> импортируем настройки Kafka для кластера
+      - classpath:config/kafka.yaml # -> импортируем настройки Kafka для кластера
 
+  # ПОДКЛЮЧЕНИЕ MONGODB
   # ${MONGO_URI:...} — «возьми переменную окружения MONGO_URI,
   # а если её нет — используй значение после двоеточия».
   #  mongodb: #- перенесено в config-repo/tasks-service.yaml
   #    uri: ${MONGO_URI:mongodb://localhost:27017/tasksdb}
+
+  # ПОДКЛЮЧЕНИЕ KAFKA
   kafka:
-    # -> Для нагрузочного тестирования пока отключим кафку
+    # -> Для нагрузочного тестирования пока отключим кафку:
     listener:
       auto-startup: false # Не запускать @KafkaListener при старте
     admin:
       auto-create: false  # Не пытаться создавать топики и проверять кластер при старте
-    # Общие настройки подключения брокера в config/kafka.yaml
+    # Общие настройки подключения брокера в config/kafka.yaml. Подключается spring.config.import
 
+    template:
+      observation-enabled: true  #-> чтобы traceId попал в Kafka headers
 
 # НАСТРОЙКИ СЕРВЕРА TOMCAT:
 # (настройка коннектов БД вынесена вместе с общими настройками
@@ -75,6 +80,13 @@ management:
         enabled: true # Пробы Liveness и Readiness (в Spring Boot 4 включены по умолчанию, но можно управлять явно)
   # Пример выделения Actuator на отдельный порт для безопасности (опционально)
   # management.server.port=9001
+
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://tracing.istio-system.svc.cluster.local:4317
 
 # ЛОГИРОВАНИЕ:
 #  level:

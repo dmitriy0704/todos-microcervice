@@ -21,9 +21,29 @@ spec:
             - containerPort: 8092
           env:
             - name: SERVER_PORT
-              value: "8092"
-            - name: MONGO_URI
-              value: "mongodb://rootadmin:supersecretpassword@users-mongodb-service:27017/usersdb?authSource=admin"
+              value: "8092" # Порт приложения
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef: # данные берутся из секрета(tasks-postgres-secret.yaml)
+                  name: users-postgres-credentials
+                  key: POSTGRES_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: users-postgres-credentials
+                  key: POSTGRES_PASSWORD
+#            - name: SPRING_DATASOURCE_URL
+#              value: "jdbc:postgresql://postgres:5432/usersdb"
+
+            # Kafka
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka.default.svc.cluster.local:9092"
+            - name: SPRING_KAFKA_CONSUMER_GROUP_ID
+              value: "users-service-group"
+            - name: SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET
+              value: "earliest"
+            - name: SPRING_KAFKA_LISTENER_OBSERVATION_ENABLED
+              value: "true"        # ← для tracing через Kafka
 ---
 apiVersion: v1
 kind: Service
